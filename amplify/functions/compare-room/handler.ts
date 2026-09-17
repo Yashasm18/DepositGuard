@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { AnthropicBedrockMantle } from '@anthropic-ai/bedrock-sdk';
-import type Anthropic from '@anthropic-ai/sdk';
+import Anthropic from '@anthropic-ai/sdk';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
@@ -15,7 +15,12 @@ const data = generateClient<Schema>();
 const s3 = new S3Client();
 const claude = new AnthropicBedrockMantle({ awsRegion: process.env.AWS_REGION });
 
-const MODEL_ID = process.env.BEDROCK_MODEL_ID ?? 'anthropic.claude-opus-5';
+// Tried in order; Bedrock enables models per account, so fall back to the
+// first one this account is allowed to use.
+const MODEL_IDS = (process.env.BEDROCK_MODEL_IDS ?? 'anthropic.claude-opus-5')
+  .split(',')
+  .map((id) => id.trim())
+  .filter(Boolean);
 const MAX_PHOTOS_PER_PHASE = 6;
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 type ImageType = (typeof IMAGE_TYPES)[number];
@@ -144,8 +149,7 @@ export const handler: Schema['compareRoom']['functionHandler'] = async (event) =
       text: 'Compare the move-in and move-out photos of this room and call report_findings with your report.',
     });
 
-    const response = await claude.messages.create({
-      model: MODEL_ID,
+    const { response, model } = await createWithFallback({
       max_tokens: 16000,
       system: SYSTEM_PROMPT,
       tools: [REPORT_TOOL],
@@ -172,14 +176,45 @@ export const handler: Schema['compareRoom']['functionHandler'] = async (event) =
       comparisonStatus: 'DONE',
       comparedAt: new Date().toISOString(),
       comparisonError: null,
-      comparison: JSON.stringify({ ...report, evidence, model: MODEL_ID }),
+      comparison: JSON.stringify({ ...report, evidence, model }),
     });
   } catch (error) {
     console.error('compareRoom failed', error);
-    const message = error instanceof Error ? error.message : 'Comparison failed.';
+    const message = friendlyError(error);
     await data.models.Room.update({ id: roomId, comparisonStatus: 'FAILED', comparisonError: message }).catch(() => {});
   }
 };
+
+async function createWithFallback(
+  params: Omit<Anthropic.MessageCreateParamsNonStreaming, 'model'>,
+): Promise<{ response: Anthropic.Message; model: string }> {
+  let lastError: unknown;
+  for (const model of MODEL_IDS) {
+    try {
+      return { response: await claude.messages.create({ ...params, model }), model };
+    } catch (error) {
+      if (!(error instanceof Anthropic.PermissionDeniedError || error instanceof Anthropic.NotFoundError)) {
+        throw error;
+      }
+      console.warn(`Model ${model} is not available, trying the next one.`, error.message);
+      lastError = error;
+    }
+  }
+  throw lastError ?? new Error('No Bedrock model configured.');
+}
+
+function friendlyError(error: unknown): string {
+  if (error instanceof Anthropic.PermissionDeniedError || error instanceof Anthropic.NotFoundError) {
+    return 'The AI model is not enabled for this AWS account yet. Enable Claude in Amazon Bedrock and try again.';
+  }
+  if (error instanceof Anthropic.RateLimitError) {
+    return 'The AI service is busy right now. Please try again in a minute.';
+  }
+  if (error instanceof Anthropic.APIError) {
+    return 'The AI service had a problem. Please try again.';
+  }
+  return error instanceof Error ? error.message : 'Comparison failed.';
+}
 
 // Amplify stores the owner as "<sub>::<username>".
 function isOwnedBy(owner: string | null | undefined, sub: string): boolean {
