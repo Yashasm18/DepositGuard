@@ -1,7 +1,6 @@
-import { useEffect, useState, type ChangeEvent } from 'react';
-import { client, parseReport, type Phase, type Photo, type Room } from '../lib/client';
+import { useState, type ChangeEvent } from 'react';
+import { api, type Phase, type Room } from '../lib/api';
 import { addEvidencePhoto } from '../lib/photos';
-import { LOCAL_AI_URL, compareWithLocalAi } from '../lib/localAi';
 import { PhotoThumb } from './PhotoThumb';
 import { ComparisonReportView } from './ComparisonReport';
 
@@ -10,32 +9,11 @@ const PHASES: { phase: Phase; title: string; hint: string }[] = [
   { phase: 'MOVE_OUT', title: 'Move-out', hint: 'Stand in the same spots when you leave.' },
 ];
 
-export function RoomCard({ room: initialRoom }: { room: Room }) {
-  const [room, setRoom] = useState(initialRoom);
-  const [photos, setPhotos] = useState<Photo[]>([]);
+const TENANT = { kind: 'tenant' } as const;
+
+export function RoomCard({ room, onChanged }: { room: Room; onChanged: () => Promise<unknown> }) {
   const [uploading, setUploading] = useState<Phase | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [usingLocalAi, setUsingLocalAi] = useState(false);
-
-  useEffect(() => setRoom(initialRoom), [initialRoom]);
-
-  useEffect(() => {
-    const sub = client.models.Photo.observeQuery({ filter: { roomId: { eq: room.id } } }).subscribe({
-      next: ({ items }) => setPhotos([...items].sort((a, b) => a.capturedAt.localeCompare(b.capturedAt))),
-      error: (e) => setError(String(e?.message ?? e)),
-    });
-    return () => sub.unsubscribe();
-  }, [room.id]);
-
-  // The comparison runs in the background; poll until it finishes.
-  useEffect(() => {
-    if (room.comparisonStatus !== 'PROCESSING') return;
-    const timer = setInterval(async () => {
-      const { data } = await client.models.Room.get({ id: room.id });
-      if (data && data.comparisonStatus !== 'PROCESSING') setRoom(data);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [room.id, room.comparisonStatus]);
 
   async function onFiles(phase: Phase, e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -51,55 +29,64 @@ export function RoomCard({ room: initialRoom }: { room: Room }) {
       setError(err instanceof Error ? err.message : 'Upload failed.');
     } finally {
       setUploading(null);
+      await onChanged();
     }
   }
 
   async function compare() {
     setError(null);
-    setUsingLocalAi(false);
-    setRoom({ ...room, comparisonStatus: 'PROCESSING', comparisonError: null });
-    const { errors } = await client.mutations.compareRoom({ roomId: room.id });
-    if (errors?.length) {
-      setError(errors[0].message);
-      setRoom({ ...room, comparisonStatus: 'FAILED' });
+    try {
+      await api.compare(room.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not start the comparison.');
     }
+    await onChanged();
   }
 
-  // Fallback when Bedrock isn't available: run the comparison on this machine.
-  async function compareLocally() {
-    setError(null);
-    setUsingLocalAi(true);
-    setRoom({ ...room, comparisonStatus: 'PROCESSING', comparisonError: null });
-    await compareWithLocalAi(room, photos).catch(() => {});
-    const { data } = await client.models.Room.get({ id: room.id });
-    if (data) setRoom(data);
+  async function removePhoto(photoId: string) {
+    if (!window.confirm('Delete this photo? This removes it from the evidence.')) return;
+    await api.deletePhoto(photoId).catch((err) => setError(err.message));
+    await onChanged();
   }
 
-  const byPhase = (phase: Phase) => photos.filter((p) => p.phase === phase);
-  const canCompare = byPhase('MOVE_IN').length > 0 && byPhase('MOVE_OUT').length > 0;
-  const processing = room.comparisonStatus === 'PROCESSING';
-  const report = room.comparisonStatus === 'DONE' ? parseReport(room.comparison) : null;
+  async function removeRoom() {
+    if (!window.confirm(`Delete ${room.name} and all its photos?`)) return;
+    await api.deleteRoom(room.id).catch((err) => setError(err.message));
+    await onChanged();
+  }
+
+  const byPhase = (phase: Phase) => room.photos.filter((p) => p.phase === phase);
+  const moveIn = byPhase('MOVE_IN').length;
+  const moveOut = byPhase('MOVE_OUT').length;
+  const canCompare = moveIn > 0 && moveOut > 0;
+  const processing = room.status === 'PROCESSING';
+  const step = room.report ? 3 : moveIn === 0 ? 0 : moveOut === 0 ? 1 : 2;
 
   return (
     <section className="card room">
       <div className="room-head">
-        <h3>{room.name}</h3>
-        <button className="btn btn-primary" disabled={!canCompare || processing} onClick={compare}>
-          {processing ? 'Comparing…' : report ? 'Compare again' : 'Compare before / after'}
-        </button>
+        <div>
+          <h3>{room.name}</h3>
+          <ol className="progress" aria-label="Progress">
+            {['Move-in photos', 'Move-out photos', 'Report'].map((label, i) => (
+              <li key={label} className={i < step ? 'done' : i === step ? 'current' : ''}>
+                {label}
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div className="room-actions">
+          <button className="btn btn-primary" disabled={!canCompare || processing} onClick={compare}>
+            {processing ? 'Comparing…' : room.report ? 'Compare again' : 'Compare before / after'}
+          </button>
+          <button className="btn btn-ghost btn-icon" title="Delete room" aria-label="Delete room" onClick={removeRoom}>
+            ✕
+          </button>
+        </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
-      {room.comparisonStatus === 'FAILED' && room.comparisonError && (
-        <div className="alert alert-error alert-row">
-          <span>{room.comparisonError}</span>
-          {LOCAL_AI_URL && canCompare && (
-            <button className="btn btn-secondary" onClick={compareLocally}>
-              Try local AI
-            </button>
-          )}
-        </div>
-      )}
+      {room.status === 'FAILED' && room.error && <div className="alert alert-error">{room.error}</div>}
 
       <div className="phases">
         {PHASES.map(({ phase, title, hint }) => {
@@ -113,15 +100,14 @@ export function RoomCard({ room: initialRoom }: { room: Room }) {
                   </h4>
                   <p className="small muted">{hint}</p>
                 </div>
-                <label className={`btn btn-secondary ${uploading ? 'disabled' : ''}`}>
+                <label className={`btn btn-secondary ${uploading || processing ? 'disabled' : ''}`}>
                   {uploading === phase ? 'Uploading…' : '+ Add photos'}
                   <input
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     multiple
                     hidden
-                    disabled={!!uploading}
+                    disabled={!!uploading || processing}
                     onChange={(e) => onFiles(phase, e)}
                   />
                 </label>
@@ -129,7 +115,13 @@ export function RoomCard({ room: initialRoom }: { room: Room }) {
               <div className="thumbs">
                 {list.length === 0 && <div className="thumb-empty">No photos yet</div>}
                 {list.map((p, i) => (
-                  <PhotoThumb key={p.id} photo={p} label={`${title} ${i + 1}`} />
+                  <PhotoThumb
+                    key={p.id}
+                    photo={p}
+                    label={`${title} ${i + 1}`}
+                    source={TENANT}
+                    onDelete={processing ? undefined : () => removePhoto(p.id)}
+                  />
                 ))}
               </div>
             </div>
@@ -139,11 +131,25 @@ export function RoomCard({ room: initialRoom }: { room: Room }) {
 
       {processing && (
         <div className="processing">
-          <span className="spinner" /> Checking photo fingerprints and comparing{' '}
-          {usingLocalAi ? 'with the local AI (Strands Agents + Ollama)' : 'with AI on Amazon Bedrock'}…
+          <span className="spinner" />
+          <div>
+            <strong>Reviewing the photos on this computer…</strong>
+            <p className="small">
+              Checking fingerprints, finding what changed, then asking the local AI (Strands Agents + Ollama) about
+              each change. This takes about a minute.
+            </p>
+          </div>
         </div>
       )}
-      {report && <ComparisonReportView report={report} comparedAt={room.comparedAt} photos={photos} />}
+      {room.report && !processing && (
+        <ComparisonReportView
+          report={room.report}
+          comparedAt={room.comparedAt}
+          photos={room.photos}
+          responses={room.responses}
+          source={TENANT}
+        />
+      )}
     </section>
   );
 }

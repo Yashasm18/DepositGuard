@@ -1,45 +1,60 @@
 import { useState } from 'react';
-import type { ComparisonReport, Finding, FindingStatus, Photo } from '../lib/client';
-import { formatDateTime, usePhotoUrl } from './PhotoThumb';
+import {
+  photoUrl,
+  type Box,
+  type Finding,
+  type FindingStatus,
+  type OwnerResponse,
+  type Photo,
+  type PhotoSource,
+  type Report,
+  type Verdict,
+} from '../lib/api';
+import { formatDateTime } from '../lib/format';
 
-const OVERALL: Record<ComparisonReport['overall'], { text: string; tone: string }> = {
+const OVERALL: Record<Report['overall'], { text: string; tone: string }> = {
   NO_NEW_DAMAGE: { text: 'No new damage found', tone: 'good' },
   WEAR_AND_TEAR_ONLY: { text: 'Only normal wear and tear', tone: 'good' },
-  NEW_DAMAGE_FOUND: { text: 'New damage found', tone: 'bad' },
+  NEW_DAMAGE_FOUND: { text: 'Possible new damage', tone: 'bad' },
   INSUFFICIENT_EVIDENCE: { text: 'Not enough evidence to decide', tone: 'warn' },
 };
 
 const STATUS: Record<FindingStatus, { text: string; tone: string }> = {
   NEW_DAMAGE: { text: 'New damage', tone: 'bad' },
+  UNCLEAR: { text: 'Unclear', tone: 'warn' },
   PRE_EXISTING: { text: 'Already there at move-in', tone: 'info' },
   WEAR_AND_TEAR: { text: 'Normal wear and tear', tone: 'good' },
+  NOT_DAMAGE: { text: 'Not damage', tone: 'good' },
   NO_CHANGE: { text: 'No change', tone: 'good' },
-  UNCLEAR: { text: 'Unclear', tone: 'warn' },
 };
 
-const ORDER: FindingStatus[] = ['NEW_DAMAGE', 'UNCLEAR', 'PRE_EXISTING', 'WEAR_AND_TEAR', 'NO_CHANGE'];
+const ORDER = Object.keys(STATUS) as FindingStatus[];
 
 interface Props {
-  report: ComparisonReport;
-  comparedAt: string | null | undefined;
+  report: Report;
+  comparedAt: string | null;
   photos: Photo[];
+  responses: Record<string, OwnerResponse>;
+  source: PhotoSource;
+  /** Present on the owner's shared page. */
+  onRespond?: (findingId: string, verdict: Verdict, comment?: string) => Promise<void>;
 }
 
-export function ComparisonReportView({ report, comparedAt, photos }: Props) {
+export function ComparisonReportView({ report, comparedAt, photos, responses, source, onRespond }: Props) {
   const overall = OVERALL[report.overall] ?? OVERALL.INSUFFICIENT_EVIDENCE;
   const findings = [...report.findings].sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status));
   const verified = report.evidence.filter((e) => e.verified).length;
   const allVerified = verified === report.evidence.length;
-  const photoFor = (phase: Photo['phase'], n: number) => {
-    const ev = report.evidence.filter((e) => e.phase === phase)[n - 1];
-    return ev && photos.find((p) => p.id === ev.photoId);
-  };
+  const labels = Object.fromEntries(report.evidence.map((e) => [e.photoId, e.label]));
+  const photoById = Object.fromEntries(photos.map((p) => [p.id, p]));
+  const disputed = findings.filter((f) => responses[f.id]?.verdict === 'DISPUTE').length;
+  const agreed = findings.filter((f) => responses[f.id]?.verdict === 'AGREE').length;
 
   return (
     <div className="report">
       <div className="report-head">
-        <span className={`badge badge-${overall.tone}`}>{overall.text}</span>
-        <span className="small muted">Report generated {formatDateTime(comparedAt)}</span>
+        <span className={`badge badge-lg badge-${overall.tone}`}>{overall.text}</span>
+        <span className="small muted">Report from {formatDateTime(comparedAt)}</span>
       </div>
       <p className="summary">{report.summary}</p>
 
@@ -49,13 +64,24 @@ export function ComparisonReportView({ report, comparedAt, photos }: Props) {
           : `⚠ ${report.evidence.length - verified} of ${report.evidence.length} photos no longer match their upload fingerprint.`}
       </div>
 
+      {(agreed > 0 || disputed > 0) && !onRespond && (
+        <div className="evidence evidence-info">
+          Owner response: {agreed} agreed, {disputed} disputed.
+        </div>
+      )}
+
       <div className="findings">
-        {findings.map((f, i) => (
+        {findings.map((f) => (
           <FindingRow
-            key={i}
+            key={f.id}
             finding={f}
-            before={f.moveInPhotos.map((n) => photoFor('MOVE_IN', n)).find(Boolean)}
-            after={f.moveOutPhotos.map((n) => photoFor('MOVE_OUT', n)).find(Boolean)}
+            before={photoById[f.moveInPhotoId]}
+            after={photoById[f.moveOutPhotoId]}
+            beforeLabel={labels[f.moveInPhotoId]}
+            afterLabel={labels[f.moveOutPhotoId]}
+            response={responses[f.id]}
+            source={source}
+            onRespond={onRespond}
           />
         ))}
       </div>
@@ -71,59 +97,140 @@ export function ComparisonReportView({ report, comparedAt, photos }: Props) {
         </div>
       )}
       <p className="small muted disclaimer">
-        Analysed by {modelName(report.model)}. AI-assisted evidence summary to help tenant and owner agree. It is not a
-        legal judgement.
+        Changes found by comparing the photos, then described by {report.model}, running on this computer. This is
+        evidence to help tenant and owner agree, not a legal judgement.
       </p>
     </div>
   );
 }
 
-function modelName(id: string | undefined): string {
-  if (!id) return 'AI';
-  if (id.startsWith('local:')) return `${id.slice(6)} running locally (Strands Agents + Ollama)`;
-  if (id.includes('nova-2-lite')) return 'Amazon Nova 2 Lite on Amazon Bedrock';
-  if (id.includes('nova-pro')) return 'Amazon Nova Pro on Amazon Bedrock';
-  if (id.includes('nova-lite')) return 'Amazon Nova Lite on Amazon Bedrock';
-  if (id.includes('claude')) {
-    return `${id.replace('anthropic.', '').replace(/-/g, ' ').replace(/\bclaude\b/, 'Claude')} on Amazon Bedrock`;
-  }
-  return id;
+interface RowProps {
+  finding: Finding;
+  before?: Photo;
+  after?: Photo;
+  beforeLabel?: string;
+  afterLabel?: string;
+  response?: OwnerResponse;
+  source: PhotoSource;
+  onRespond?: Props['onRespond'];
 }
 
-function FindingRow({ finding, before, after }: { finding: Finding; before?: Photo; after?: Photo }) {
-  const [open, setOpen] = useState(finding.status === 'NEW_DAMAGE');
+function FindingRow({ finding, before, after, beforeLabel, afterLabel, response, source, onRespond }: RowProps) {
+  const important = finding.status === 'NEW_DAMAGE' || finding.status === 'UNCLEAR';
+  const [open, setOpen] = useState(important);
   const status = STATUS[finding.status] ?? STATUS.UNCLEAR;
-  const canShow = !!(before || after);
+
   return (
     <div className={`finding finding-${status.tone}`}>
-      <button className="finding-head" onClick={() => setOpen(!open)} disabled={!canShow}>
+      <button className="finding-head" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span className={`badge badge-${status.tone}`}>{status.text}</span>
         <span className="finding-title">
-          <b>{finding.item}</b> · {finding.location}
+          <b>{finding.item}</b>
+          {finding.location && <span className="muted"> · {finding.location}</span>}
         </span>
         {finding.severity !== 'none' && <span className="small muted">{finding.severity} severity</span>}
-        <span className="small muted">{Math.round(finding.confidence * 100)}% sure</span>
+        {response && (
+          <span className={`badge badge-${response.verdict === 'AGREE' ? 'good' : 'bad'}`}>
+            Owner {response.verdict === 'AGREE' ? 'agrees' : 'disputes'}
+          </span>
+        )}
+        <span className="chevron" aria-hidden>
+          {open ? '▾' : '▸'}
+        </span>
       </button>
       <p>{finding.description}</p>
-      {open && canShow && (
-        <div className="compare-pair">
-          <Side title="Move-in" photo={before} />
-          <Side title="Move-out" photo={after} />
-        </div>
+      {response?.comment && <p className="owner-comment">Owner: “{response.comment}”</p>}
+      {open && (
+        <>
+          <div className="compare-pair">
+            <Side title={beforeLabel ?? 'Move-in'} photo={before} box={finding.box} source={source} />
+            <Side title={afterLabel ?? 'Move-out'} photo={after} box={finding.box} source={source} />
+          </div>
+          <p className="small muted">
+            {finding.source === 'ai'
+              ? `AI confidence ${Math.round(finding.confidence * 100)}%. The box marks the area that changed.`
+              : 'Found by comparing the photos directly.'}
+          </p>
+          {onRespond && <RespondControls findingId={finding.id} current={response} onRespond={onRespond} />}
+        </>
       )}
     </div>
   );
 }
 
-function Side({ title, photo }: { title: string; photo?: Photo }) {
-  const url = usePhotoUrl(photo?.path);
+function Side({ title, photo, box, source }: { title: string; photo?: Photo; box: Box | null; source: PhotoSource }) {
   return (
     <figure>
-      {url ? <img src={url} alt={title} /> : <div className="thumb-empty">No photo referenced</div>}
+      {photo ? (
+        <div className="boxed">
+          <img src={photoUrl(source, photo.id)} alt={title} />
+          {box && (
+            <span
+              className="box"
+              style={{
+                left: `${box.x * 100}%`,
+                top: `${box.y * 100}%`,
+                width: `${box.w * 100}%`,
+                height: `${box.h * 100}%`,
+              }}
+            />
+          )}
+        </div>
+      ) : (
+        <div className="thumb-empty">Photo not available</div>
+      )}
       <figcaption>
         {title}
         {photo && ` · ${formatDateTime(photo.capturedAt)}`}
       </figcaption>
     </figure>
+  );
+}
+
+function RespondControls({
+  findingId,
+  current,
+  onRespond,
+}: {
+  findingId: string;
+  current?: OwnerResponse;
+  onRespond: NonNullable<Props['onRespond']>;
+}) {
+  const [comment, setComment] = useState(current?.comment ?? '');
+  const [busy, setBusy] = useState(false);
+
+  async function send(verdict: Verdict) {
+    setBusy(true);
+    try {
+      await onRespond(findingId, verdict, comment.trim() || undefined);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="respond">
+      <input
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        maxLength={500}
+        placeholder="Optional comment for the tenant"
+        aria-label="Comment"
+      />
+      <button
+        className={`btn ${current?.verdict === 'AGREE' ? 'btn-primary' : 'btn-secondary'}`}
+        disabled={busy}
+        onClick={() => send('AGREE')}
+      >
+        Agree
+      </button>
+      <button
+        className={`btn ${current?.verdict === 'DISPUTE' ? 'btn-danger' : 'btn-ghost'}`}
+        disabled={busy}
+        onClick={() => send('DISPUTE')}
+      >
+        Dispute
+      </button>
+    </div>
   );
 }

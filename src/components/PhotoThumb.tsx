@@ -1,43 +1,30 @@
-import { useEffect, useState } from 'react';
-import { getUrl } from 'aws-amplify/storage';
-import type { Photo } from '../lib/client';
+import { photoUrl, type Photo, type PhotoSource } from '../lib/api';
+import { formatDateTime } from '../lib/format';
 
-export function PhotoThumb({ photo, label }: { photo: Photo; label: string }) {
-  const url = usePhotoUrl(photo.path);
+interface Props {
+  photo: Photo;
+  label: string;
+  source: PhotoSource;
+  onDelete?: () => void;
+}
+
+export function PhotoThumb({ photo, label, source, onDelete }: Props) {
+  const url = photoUrl(source, photo.id);
   return (
-    <figure className="thumb" title={`SHA-256 ${photo.sha256}`}>
-      {url ? (
-        <a href={url} target="_blank" rel="noreferrer">
-          <img src={url} alt={label} loading="lazy" />
-        </a>
-      ) : (
-        <div className="thumb-loading" />
+    <figure className="thumb">
+      <a href={url} target="_blank" rel="noreferrer">
+        <img src={url} alt={label} loading="lazy" />
+      </a>
+      {onDelete && (
+        <button className="thumb-delete" onClick={onDelete} aria-label={`Delete ${label}`} title="Delete photo">
+          ✕
+        </button>
       )}
-      <figcaption>
+      <figcaption title={`SHA-256 fingerprint ${photo.sha256}`}>
         <b>{label}</b>
         <span>{formatDateTime(photo.capturedAt)}</span>
         <code>#{photo.sha256.slice(0, 10)}</code>
       </figcaption>
     </figure>
   );
-}
-
-export function usePhotoUrl(path: string | undefined): string | null {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    if (!path) return;
-    let cancelled = false;
-    getUrl({ path, options: { expiresIn: 3600 } }).then(({ url }) => {
-      if (!cancelled) setUrl(url.toString());
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [path]);
-  return url;
-}
-
-export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return '';
-  return new Date(iso).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
 }

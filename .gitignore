@@ -153,3 +153,6 @@ amplifyconfiguration*
 # python
 .venv/
 __pycache__/
+
+# local data
+server/data/

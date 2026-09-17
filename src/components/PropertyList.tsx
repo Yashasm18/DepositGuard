@@ -1,36 +1,35 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { client, type Property } from '../lib/client';
+import { api, type PropertySummary } from '../lib/api';
+import { formatInr } from '../lib/format';
 
 export function PropertyList({ onOpen }: { onOpen: (id: string) => void }) {
-  const [properties, setProperties] = useState<Property[] | null>(null);
+  const [properties, setProperties] = useState<PropertySummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const sub = client.models.Property.observeQuery().subscribe({
-      next: ({ items }) => setProperties([...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))),
-      error: (e) => setError(String(e?.message ?? e)),
-    });
-    return () => sub.unsubscribe();
+    api.properties().then(setProperties, (e) => setError(e.message));
   }, []);
 
   async function create(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
+    const deposit = String(form.get('depositAmount') || '');
     setSaving(true);
     setError(null);
-    const { data, errors } = await client.models.Property.create({
-      name: String(form.get('name')),
-      address: String(form.get('address') || '') || undefined,
-      ownerName: String(form.get('ownerName') || '') || undefined,
-      moveInDate: String(form.get('moveInDate') || '') || undefined,
-    });
-    setSaving(false);
-    if (!data) {
-      setError(errors?.[0]?.message ?? 'Could not create the property.');
-      return;
+    try {
+      const { id } = await api.createProperty({
+        name: String(form.get('name')),
+        address: String(form.get('address') || '') || null,
+        ownerName: String(form.get('ownerName') || '') || null,
+        moveInDate: String(form.get('moveInDate') || '') || null,
+        depositAmount: deposit ? Number(deposit) : null,
+      });
+      onOpen(id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not add the home.');
+      setSaving(false);
     }
-    onOpen(data.id);
   }
 
   return (
@@ -43,13 +42,14 @@ export function PropertyList({ onOpen }: { onOpen: (id: string) => void }) {
       {error && <div className="alert alert-error">{error}</div>}
 
       <div className="grid">
-        {properties === null && <div className="card muted">Loading…</div>}
+        {properties === null && !error && <div className="card muted">Loading…</div>}
         {properties?.map((p) => (
           <button key={p.id} className="card card-link" onClick={() => onOpen(p.id)}>
             <h3>{p.name}</h3>
             {p.address && <p className="muted">{p.address}</p>}
             <p className="small">
-              {p.ownerName ? `Owner: ${p.ownerName}` : 'Owner not added'}
+              {p.roomCount} room{p.roomCount === 1 ? '' : 's'}
+              {p.depositAmount != null ? ` · Deposit ${formatInr(p.depositAmount)}` : ''}
               {p.moveInDate ? ` · Moved in ${p.moveInDate}` : ''}
             </p>
           </button>
@@ -60,16 +60,20 @@ export function PropertyList({ onOpen }: { onOpen: (id: string) => void }) {
         <h3>Add a home</h3>
         <label>
           Name
-          <input name="name" required placeholder="e.g. 2BHK, Koramangala" />
+          <input name="name" required maxLength={120} placeholder="e.g. 2BHK, Koramangala" />
         </label>
         <label>
           Address
-          <input name="address" placeholder="Flat, building, area" />
+          <input name="address" maxLength={300} placeholder="Flat, building, area" />
         </label>
         <div className="row">
           <label>
             Owner / landlord name
-            <input name="ownerName" placeholder="Optional" />
+            <input name="ownerName" maxLength={120} placeholder="Optional" />
+          </label>
+          <label>
+            Security deposit (₹)
+            <input name="depositAmount" type="number" min={0} step={500} placeholder="e.g. 50000" />
           </label>
           <label>
             Move-in date

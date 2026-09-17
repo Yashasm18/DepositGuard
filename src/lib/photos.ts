@@ -1,41 +1,16 @@
-import { uploadData } from 'aws-amplify/storage';
-import { client, type Phase, type Photo } from './client';
+import { api, type Phase, type Photo } from './api';
 
 const MAX_EDGE = 1600;
-const JPEG_QUALITY = 0.85;
+const JPEG_QUALITY = 0.88;
 
 /**
- * Shrinks a camera photo to a sensible size, fingerprints the exact bytes we
- * store, uploads them to the user's private evidence folder and records the
- * photo. The fingerprint is re-checked later by the compare function.
+ * Shrinks a camera photo to a sensible size and uploads it. The server
+ * fingerprints (SHA-256) the exact bytes it stores and re-checks them
+ * before every comparison.
  */
-export async function addEvidencePhoto(roomId: string, phase: Phase, file: File, note?: string): Promise<Photo> {
+export async function addEvidencePhoto(roomId: string, phase: Phase, file: File): Promise<Photo> {
   const capturedAt = new Date(file.lastModified || Date.now()).toISOString();
-  const blob = await resizeToJpeg(file);
-  const sha256 = await sha256Hex(blob);
-  const fileName = `${crypto.randomUUID()}.jpg`;
-
-  const { path } = await uploadData({
-    path: ({ identityId }) => `evidence/${identityId}/${roomId}/${phase}/${fileName}`,
-    data: blob,
-    options: { contentType: 'image/jpeg' },
-  }).result;
-
-  const { data, errors } = await client.models.Photo.create({
-    roomId,
-    phase,
-    path,
-    sha256,
-    capturedAt,
-    note: note?.trim() || undefined,
-  });
-  if (!data) throw new Error(errors?.[0]?.message ?? 'Could not save the photo.');
-  return data;
-}
-
-export async function sha256Hex(blob: Blob): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+  return api.uploadPhoto(roomId, phase, await resizeToJpeg(file), capturedAt);
 }
 
 async function resizeToJpeg(file: File): Promise<Blob> {
