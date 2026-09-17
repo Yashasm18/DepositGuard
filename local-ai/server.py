@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import urllib.request
+from urllib.parse import urlparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Literal
 
@@ -29,6 +30,10 @@ PORT = int(os.environ.get("PORT", "8787"))
 ALLOWED_ORIGINS = {"http://localhost:5173", "http://127.0.0.1:5173"}
 MAX_EDGE = 768  # small images keep a 3B model fast on a laptop
 MAX_PHOTOS_PER_PHASE = 4
+MAX_PHOTOS_IN_REQUEST = 50
+MAX_BODY_BYTES = 256 * 1024
+MAX_PHOTO_BYTES = 15 * 1024 * 1024
+Image.MAX_IMAGE_PIXELS = 40_000_000  # refuse decompression bombs
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("depositguard-local")
@@ -79,11 +84,23 @@ class CompareRequest(BaseModel):
     photos: list[PhotoIn]
 
 
+def is_s3_url(url: str) -> bool:
+    parsed = urlparse(url)
+    host = parsed.hostname or ""
+    return parsed.scheme == "https" and (host == "s3.amazonaws.com" or (
+        host.endswith(".amazonaws.com") and (".s3." in f".{host}" or host.startswith("s3."))
+    ))
+
+
 def fetch(url: str) -> bytes:
-    if not url.startswith("https://"):
-        raise ValueError("Photo URLs must be https.")
-    with urllib.request.urlopen(url, timeout=30) as resp:  # noqa: S310 - presigned S3 URL
-        return resp.read()
+    # Only presigned S3 URLs from the app are allowed, never arbitrary hosts.
+    if not is_s3_url(url):
+        raise ValueError("Photo URLs must be Amazon S3 URLs.")
+    with urllib.request.urlopen(url, timeout=30) as resp:  # noqa: S310 - validated S3 URL
+        data = resp.read(MAX_PHOTO_BYTES + 1)
+    if len(data) > MAX_PHOTO_BYTES:
+        raise ValueError("Photo is too large.")
+    return data
 
 
 def shrink(data: bytes) -> bytes:
@@ -171,12 +188,25 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/compare":
             self._json(404, {"error": "Not found"})
             return
+        # Only the DepositGuard app may use this service; blocks other web pages
+        # from making the browser call it.
+        if self.headers.get("Origin") not in ALLOWED_ORIGINS:
+            self._json(403, {"error": "Forbidden origin"})
+            return
+        if (self.headers.get("Content-Type") or "").split(";")[0].strip() != "application/json":
+            self._json(415, {"error": "Content-Type must be application/json"})
+            return
         try:
             length = int(self.headers.get("Content-Length", "0"))
+            if length <= 0 or length > MAX_BODY_BYTES:
+                self._json(413, {"error": "Request too large"})
+                return
             req = CompareRequest.model_validate_json(self.rfile.read(length))
+            if len(req.photos) > MAX_PHOTOS_IN_REQUEST:
+                raise ValueError("Too many photos in one request.")
             log.info("Comparing %s (%d photos)", req.roomName, len(req.photos))
             self._json(200, compare(req))
-        except (ValidationError, ValueError) as err:
+        except (ValidationError, ValueError, Image.DecompressionBombError) as err:
             self._json(400, {"error": str(err)})
         except Exception:
             log.exception("Comparison failed")
