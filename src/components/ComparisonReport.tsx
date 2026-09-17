@@ -71,8 +71,8 @@ export function ComparisonReportView({ report, comparedAt, photos }: Props) {
         </div>
       )}
       <p className="small muted disclaimer">
-        Analysed by {modelName(report.model)} on Amazon Bedrock. AI-assisted evidence summary to help tenant and owner
-        agree. It is not a legal judgement.
+        Analysed by {modelName(report.model)}. AI-assisted evidence summary to help tenant and owner agree. It is not a
+        legal judgement.
       </p>
     </div>
   );
@@ -80,10 +80,13 @@ export function ComparisonReportView({ report, comparedAt, photos }: Props) {
 
 function modelName(id: string | undefined): string {
   if (!id) return 'AI';
-  if (id.includes('nova-2-lite')) return 'Amazon Nova 2 Lite';
-  if (id.includes('nova-pro')) return 'Amazon Nova Pro';
-  if (id.includes('nova-lite')) return 'Amazon Nova Lite';
-  if (id.includes('claude')) return id.replace('anthropic.', '').replace(/-/g, ' ').replace(/\bclaude\b/, 'Claude');
+  if (id.startsWith('local:')) return `${id.slice(6)} running locally (Strands Agents + Ollama)`;
+  if (id.includes('nova-2-lite')) return 'Amazon Nova 2 Lite on Amazon Bedrock';
+  if (id.includes('nova-pro')) return 'Amazon Nova Pro on Amazon Bedrock';
+  if (id.includes('nova-lite')) return 'Amazon Nova Lite on Amazon Bedrock';
+  if (id.includes('claude')) {
+    return `${id.replace('anthropic.', '').replace(/-/g, ' ').replace(/\bclaude\b/, 'Claude')} on Amazon Bedrock`;
+  }
   return id;
 }
 

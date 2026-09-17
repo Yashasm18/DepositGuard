@@ -47,7 +47,20 @@ npx ampx sandbox      # deploys a personal backend and writes amplify_outputs.js
 npm run dev           # in a second terminal
 ```
 
-The Bedrock model is set in `amplify/functions/compare-room/resource.ts` (`BEDROCK_MODEL_ID`).
+The Bedrock models are listed in `amplify/functions/compare-room/resource.ts` (`BEDROCK_MODEL_IDS`) and tried in order: Claude first, then Amazon Nova.
+
+### Local AI fallback (optional)
+
+If your AWS account can't use Bedrock yet, the comparison can run on your own machine with [Strands Agents](https://strandsagents.com) (AWS open source) and a local vision model in [Ollama](https://ollama.com). When a Bedrock comparison fails, the app shows a **Try local AI** button.
+
+```bash
+ollama pull qwen2.5vl:3b
+cd local-ai && python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python server.py                    # http://localhost:8787
+echo "VITE_LOCAL_AI_URL=http://localhost:8787" > ../.env.local
+```
+
+The small local model is much less accurate than the Bedrock models; use it for development only.
 
 ## AI tools used
 

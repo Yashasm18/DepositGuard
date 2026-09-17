@@ -149,3 +149,7 @@ amplifyconfiguration*
 
 # local tooling
 .claude/
+
+# python
+.venv/
+__pycache__/

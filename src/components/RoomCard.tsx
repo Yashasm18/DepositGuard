@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { client, parseReport, type Phase, type Photo, type Room } from '../lib/client';
 import { addEvidencePhoto } from '../lib/photos';
+import { LOCAL_AI_URL, compareWithLocalAi } from '../lib/localAi';
 import { PhotoThumb } from './PhotoThumb';
 import { ComparisonReportView } from './ComparisonReport';
 
@@ -14,6 +15,7 @@ export function RoomCard({ room: initialRoom }: { room: Room }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [uploading, setUploading] = useState<Phase | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [usingLocalAi, setUsingLocalAi] = useState(false);
 
   useEffect(() => setRoom(initialRoom), [initialRoom]);
 
@@ -54,12 +56,23 @@ export function RoomCard({ room: initialRoom }: { room: Room }) {
 
   async function compare() {
     setError(null);
+    setUsingLocalAi(false);
     setRoom({ ...room, comparisonStatus: 'PROCESSING', comparisonError: null });
     const { errors } = await client.mutations.compareRoom({ roomId: room.id });
     if (errors?.length) {
       setError(errors[0].message);
       setRoom({ ...room, comparisonStatus: 'FAILED' });
     }
+  }
+
+  // Fallback when Bedrock isn't available: run the comparison on this machine.
+  async function compareLocally() {
+    setError(null);
+    setUsingLocalAi(true);
+    setRoom({ ...room, comparisonStatus: 'PROCESSING', comparisonError: null });
+    await compareWithLocalAi(room, photos).catch(() => {});
+    const { data } = await client.models.Room.get({ id: room.id });
+    if (data) setRoom(data);
   }
 
   const byPhase = (phase: Phase) => photos.filter((p) => p.phase === phase);
@@ -78,7 +91,14 @@ export function RoomCard({ room: initialRoom }: { room: Room }) {
 
       {error && <div className="alert alert-error">{error}</div>}
       {room.comparisonStatus === 'FAILED' && room.comparisonError && (
-        <div className="alert alert-error">{room.comparisonError}</div>
+        <div className="alert alert-error alert-row">
+          <span>{room.comparisonError}</span>
+          {LOCAL_AI_URL && canCompare && (
+            <button className="btn btn-secondary" onClick={compareLocally}>
+              Try local AI
+            </button>
+          )}
+        </div>
       )}
 
       <div className="phases">
@@ -119,7 +139,8 @@ export function RoomCard({ room: initialRoom }: { room: Room }) {
 
       {processing && (
         <div className="processing">
-          <span className="spinner" /> Checking photo fingerprints and comparing with Claude on Amazon Bedrock…
+          <span className="spinner" /> Checking photo fingerprints and comparing{' '}
+          {usingLocalAi ? 'with the local AI (Strands Agents + Ollama)' : 'with AI on Amazon Bedrock'}…
         </div>
       )}
       {report && <ComparisonReportView report={report} comparedAt={room.comparedAt} photos={photos} />}
