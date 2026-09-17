@@ -71,10 +71,20 @@ export function ComparisonReportView({ report, comparedAt, photos }: Props) {
         </div>
       )}
       <p className="small muted disclaimer">
-        AI-assisted evidence summary to help tenant and owner agree. It is not a legal judgement.
+        Analysed by {modelName(report.model)} on Amazon Bedrock. AI-assisted evidence summary to help tenant and owner
+        agree. It is not a legal judgement.
       </p>
     </div>
   );
+}
+
+function modelName(id: string | undefined): string {
+  if (!id) return 'AI';
+  if (id.includes('nova-2-lite')) return 'Amazon Nova 2 Lite';
+  if (id.includes('nova-pro')) return 'Amazon Nova Pro';
+  if (id.includes('nova-lite')) return 'Amazon Nova Lite';
+  if (id.includes('claude')) return id.replace('anthropic.', '').replace(/-/g, ' ').replace(/\bclaude\b/, 'Claude');
+  return id;
 }
 
 function FindingRow({ finding, before, after }: { finding: Finding; before?: Photo; after?: Photo }) {

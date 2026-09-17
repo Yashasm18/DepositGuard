@@ -13,6 +13,7 @@
     "@anthropic-ai/bedrock-sdk": "^0.33.6",
     "@anthropic-ai/sdk": "^0.126.0",
     "@aws-amplify/ui-react": "^6.15.6",
+    "@aws-sdk/client-bedrock-runtime": "^3.1134.0",
     "@aws-sdk/client-s3": "^3.1134.0",
     "aws-amplify": "^6.20.0",
     "react": "^19.2.8",

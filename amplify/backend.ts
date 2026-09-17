@@ -24,12 +24,13 @@ backend.storage.resources.cfnResources.cfnBucket.versioningConfiguration = {
   status: 'Enabled',
 };
 
-// The compare function reads the photos and calls Claude on Amazon Bedrock.
+// The compare function reads the photos and calls Amazon Bedrock
+// (Claude through the Messages API, Amazon Nova through Converse).
 evidenceBucket.grantRead(compareLambda);
 backend.compareRoom.addEnvironment('EVIDENCE_BUCKET', evidenceBucket.bucketName);
 compareLambda.addToRolePolicy(
   new PolicyStatement({
-    actions: ['bedrock-mantle:CreateInference'],
+    actions: ['bedrock-mantle:CreateInference', 'bedrock:InvokeModel'],
     resources: ['*'],
   }),
 );

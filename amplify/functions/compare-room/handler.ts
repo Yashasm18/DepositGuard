@@ -1,29 +1,25 @@
 import { createHash } from 'node:crypto';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { AnthropicBedrockMantle } from '@anthropic-ai/bedrock-sdk';
-import Anthropic from '@anthropic-ai/sdk';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
 import { env } from '$amplify/env/compare-room';
 import type { Schema } from '../../data/resource';
+import { ModelUnavailableError, requestReport, type ImageType, type Part, type ReportTool } from './models';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(env);
 Amplify.configure(resourceConfig, libraryOptions);
 
 const data = generateClient<Schema>();
 const s3 = new S3Client();
-const claude = new AnthropicBedrockMantle({ awsRegion: process.env.AWS_REGION });
 
-// Tried in order; Bedrock enables models per account, so fall back to the
-// first one this account is allowed to use.
+// Tried in order; the first model this account can use produces the report.
 const MODEL_IDS = (process.env.BEDROCK_MODEL_IDS ?? 'anthropic.claude-opus-5')
   .split(',')
   .map((id) => id.trim())
   .filter(Boolean);
 const MAX_PHOTOS_PER_PHASE = 6;
-const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
-type ImageType = (typeof IMAGE_TYPES)[number];
+const IMAGE_TYPES: readonly string[] = ['image/jpeg', 'image/png', 'image/webp'];
 
 type Photo = Schema['Photo']['type'];
 
@@ -42,10 +38,10 @@ Be fair to both tenant and owner. Only call something NEW_DAMAGE when the move-i
 When in doubt, use UNCLEAR and say what photo would settle it. Refer to photos by their labels, for example "Move-in 2".
 This is evidence support, not legal advice. Report your findings by calling the report_findings tool.`;
 
-const REPORT_TOOL: Anthropic.Tool = {
+const REPORT_TOOL: ReportTool = {
   name: 'report_findings',
   description: 'Submit the before/after condition report for this room.',
-  input_schema: {
+  schema: {
     type: 'object',
     properties: {
       overall: {
@@ -115,7 +111,7 @@ export const handler: Schema['compareRoom']['functionHandler'] = async (event) =
       throw new Error('Add at least one move-in photo and one move-out photo before comparing.');
     }
 
-    const content: Anthropic.ContentBlockParam[] = [
+    const parts: Part[] = [
       { type: 'text', text: `Room: ${room.name}` },
     ];
     const evidence: EvidenceCheck[] = [];
@@ -123,7 +119,7 @@ export const handler: Schema['compareRoom']['functionHandler'] = async (event) =
       ['MOVE_IN', moveIn, 'Move-in'],
       ['MOVE_OUT', moveOut, 'Move-out'],
     ] as const) {
-      content.push({ type: 'text', text: `${title.toUpperCase()} PHOTOS` });
+      parts.push({ type: 'text', text: `${title.toUpperCase()} PHOTOS` });
       for (const [i, photo] of set.entries()) {
         const label = `${title} ${i + 1}`;
         const { bytes, mediaType } = await readImage(photo.path);
@@ -137,46 +133,27 @@ export const handler: Schema['compareRoom']['functionHandler'] = async (event) =
           verified: actualHash === photo.sha256,
         });
         const note = photo.note ? ` Tenant note: ${photo.note}` : '';
-        content.push({ type: 'text', text: `${label} (taken ${photo.capturedAt}).${note}` });
-        content.push({
-          type: 'image',
-          source: { type: 'base64', media_type: mediaType, data: Buffer.from(bytes).toString('base64') },
-        });
+        parts.push({ type: 'text', text: `${label} (taken ${photo.capturedAt}).${note}` });
+        parts.push({ type: 'image', bytes, mediaType });
       }
     }
-    content.push({
+    parts.push({
       type: 'text',
       text: 'Compare the move-in and move-out photos of this room and call report_findings with your report.',
     });
 
-    const { response, model } = await createWithFallback({
-      max_tokens: 16000,
+    const { report, model } = await requestReport(MODEL_IDS, {
       system: SYSTEM_PROMPT,
-      tools: [REPORT_TOOL],
-      tool_choice: { type: 'auto' },
-      messages: [{ role: 'user', content }],
+      parts,
+      tool: REPORT_TOOL,
     });
-
-    if (response.stop_reason === 'refusal') {
-      throw new Error('The AI declined to review these photos. Try different photos.');
-    }
-    const toolUse = response.content.find(
-      (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use' && block.name === 'report_findings',
-    );
-    if (!toolUse) {
-      throw new Error(`The AI did not return a report (stop reason: ${response.stop_reason}). Please try again.`);
-    }
-    const report = toolUse.input as Record<string, unknown>;
-    if (!Array.isArray(report.findings) || typeof report.summary !== 'string') {
-      throw new Error('The AI returned an incomplete report. Please try again.');
-    }
 
     await data.models.Room.update({
       id: roomId,
       comparisonStatus: 'DONE',
       comparedAt: new Date().toISOString(),
       comparisonError: null,
-      comparison: JSON.stringify({ ...report, evidence, model }),
+      comparison: JSON.stringify({ ...normalizeReport(report), evidence, model }),
     });
   } catch (error) {
     console.error('compareRoom failed', error);
@@ -185,35 +162,47 @@ export const handler: Schema['compareRoom']['functionHandler'] = async (event) =
   }
 };
 
-async function createWithFallback(
-  params: Omit<Anthropic.MessageCreateParamsNonStreaming, 'model'>,
-): Promise<{ response: Anthropic.Message; model: string }> {
-  let lastError: unknown;
-  for (const model of MODEL_IDS) {
-    try {
-      return { response: await claude.messages.create({ ...params, model }), model };
-    } catch (error) {
-      if (!(error instanceof Anthropic.PermissionDeniedError || error instanceof Anthropic.NotFoundError)) {
-        throw error;
-      }
-      console.warn(`Model ${model} is not available, trying the next one.`, error.message);
-      lastError = error;
-    }
-  }
-  throw lastError ?? new Error('No Bedrock model configured.');
-}
-
 function friendlyError(error: unknown): string {
-  if (error instanceof Anthropic.PermissionDeniedError || error instanceof Anthropic.NotFoundError) {
-    return 'The AI model is not enabled for this AWS account yet. Enable Claude in Amazon Bedrock and try again.';
-  }
-  if (error instanceof Anthropic.RateLimitError) {
-    return 'The AI service is busy right now. Please try again in a minute.';
-  }
-  if (error instanceof Anthropic.APIError) {
-    return 'The AI service had a problem. Please try again.';
+  if (error instanceof ModelUnavailableError) {
+    return 'The AI service could not review these photos right now. Please try again in a minute.';
   }
   return error instanceof Error ? error.message : 'Comparison failed.';
+}
+
+const OVERALL = ['NO_NEW_DAMAGE', 'WEAR_AND_TEAR_ONLY', 'NEW_DAMAGE_FOUND', 'INSUFFICIENT_EVIDENCE'];
+const STATUSES = ['NEW_DAMAGE', 'PRE_EXISTING', 'WEAR_AND_TEAR', 'NO_CHANGE', 'UNCLEAR'];
+const SEVERITIES = ['none', 'low', 'medium', 'high'];
+
+/** Models differ in how strictly they follow the schema, so coerce the report into shape. */
+function normalizeReport(raw: Record<string, unknown>) {
+  const findings = (Array.isArray(raw.findings) ? raw.findings : []).map((f: Record<string, unknown>) => ({
+    item: String(f.item ?? 'Item'),
+    location: String(f.location ?? ''),
+    status: oneOf(f.status, STATUSES, 'UNCLEAR'),
+    severity: oneOf(f.severity, SEVERITIES, 'none'),
+    description: String(f.description ?? ''),
+    moveInPhotos: toNumbers(f.moveInPhotos),
+    moveOutPhotos: toNumbers(f.moveOutPhotos),
+    confidence: Math.min(1, Math.max(0, Number(f.confidence) || 0)),
+  }));
+  if (typeof raw.summary !== 'string' || !raw.summary.trim()) {
+    throw new Error('The AI returned an incomplete report. Please try again.');
+  }
+  return {
+    overall: oneOf(raw.overall, OVERALL, 'INSUFFICIENT_EVIDENCE'),
+    summary: raw.summary,
+    findings,
+    photoQualityNotes: (Array.isArray(raw.photoQualityNotes) ? raw.photoQualityNotes : []).map(String),
+  };
+}
+
+function oneOf(value: unknown, allowed: string[], fallback: string): string {
+  const v = String(value ?? '').trim();
+  return allowed.find((a) => a.toLowerCase() === v.toLowerCase()) ?? fallback;
+}
+
+function toNumbers(value: unknown): number[] {
+  return (Array.isArray(value) ? value : [value]).map(Number).filter((n) => Number.isInteger(n) && n > 0);
 }
 
 // Amplify stores the owner as "<sub>::<username>".

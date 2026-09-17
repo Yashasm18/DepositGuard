@@ -10,7 +10,13 @@ export const compareRoom = defineFunction({
   // between the data and storage stacks.
   resourceGroupName: 'data',
   environment: {
-    BEDROCK_MODEL_IDS:
-      'anthropic.claude-opus-5,anthropic.claude-sonnet-5,anthropic.claude-opus-4-8,anthropic.claude-haiku-4-5',
+    // Claude first; Amazon Nova as the fallback for accounts without Claude access.
+    BEDROCK_MODEL_IDS: [
+      'anthropic.claude-opus-5',
+      'anthropic.claude-sonnet-5',
+      'us.amazon.nova-2-lite-v1:0',
+      'us.amazon.nova-pro-v1:0',
+      'us.amazon.nova-lite-v1:0',
+    ].join(','),
   },
 });
