@@ -148,7 +148,9 @@ function FindingRow({ finding, before, after, beforeLabel, afterLabel, response,
           </div>
           <p className="small muted">
             {finding.source === 'ai'
-              ? `AI confidence ${Math.round(finding.confidence * 100)}%. The box marks the area that changed.`
+              ? finding.box
+                ? `AI confidence ${Math.round(finding.confidence * 100)}%. The box marks the area that changed.`
+                : 'Described by the local AI.'
               : 'Found by comparing the photos directly.'}
           </p>
           {onRespond && <RespondControls findingId={finding.id} current={response} onRespond={onRespond} />}

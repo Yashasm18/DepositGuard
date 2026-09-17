@@ -83,7 +83,7 @@ def _build(room_id: str) -> dict:
     pairs: list[dict] = []
     notes: list[str] = []
     labels = {e["photoId"]: e["label"] for e in evidence}
-    used_move_in: set[str] = set()
+    matched_move_in: set[str] = set()
 
     for out_photo in move_out:
         after = images[out_photo["id"]]
@@ -100,7 +100,11 @@ def _build(room_id: str) -> dict:
         )
         base = {"moveInPhotoId": best["id"], "moveOutPhotoId": out_photo["id"]}
 
+        matched_move_in.add(best["id"])
         if analysis.misaligned or analysis.similarity < MIN_PAIR_SIMILARITY:
+            # Still let the AI describe the difference, but never call it
+            # damage: the photos don't show the same spot.
+            label = agent.label_region(vision.side_by_side(before, after), room["name"])
             findings.append(
                 {
                     **base,
@@ -110,12 +114,12 @@ def _build(room_id: str) -> dict:
                     "status": "UNCLEAR",
                     "severity": "none",
                     "description": (
-                        f"{labels[out_photo['id']]} doesn't seem to show the same spot as any move-in photo, "
-                        "so it can't be compared fairly."
+                        f"{labels[out_photo['id']]} doesn't seem to show the same spot as {labels[best['id']]}, "
+                        f"so it can't be compared fairly. The AI noticed: {label.description}"
                     ),
                     "confidence": 0.9,
                     "box": None,
-                    "source": "change-detection",
+                    "source": "ai",
                 }
             )
             notes.append(
@@ -123,7 +127,6 @@ def _build(room_id: str) -> dict:
             )
             continue
 
-        used_move_in.add(best["id"])
         if not analysis.regions:
             findings.append(
                 {
@@ -159,7 +162,7 @@ def _build(room_id: str) -> dict:
             )
 
     for photo in move_in:
-        if photo["id"] not in used_move_in:
+        if photo["id"] not in matched_move_in:
             notes.append(f"{labels[photo['id']]} has no matching move-out photo yet.")
 
     statuses = {f["status"] for f in findings}
