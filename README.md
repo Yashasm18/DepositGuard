@@ -71,7 +71,7 @@ Data is stored in `server/data/` (ignored by git). A comparison takes about a mi
 
 ## Limits
 
-- The local 3B model is small; it can misread a change. Every finding shows the photos and the changed area so people can judge for themselves, and the owner can dispute it.
+- The local 3B model is small; it can misread a change. `server/eval_models.py` scores models on known changes: Qwen2.5-VL 3B gets 3 of 4 (it calls a box placed on the floor damage); Qwen3-VL 4B did worse through Ollama's JSON mode. Larger models don't fit an 8 GB laptop. Every finding shows the photos and the changed area so people can judge for themselves, and the owner can dispute it.
 - Change detection works best when move-out photos are taken from the same place and angle as move-in photos.
 - This is evidence support, not legal advice.
 

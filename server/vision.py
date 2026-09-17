@@ -19,6 +19,7 @@ Image.MAX_IMAGE_PIXELS = 40_000_000  # refuse decompression bombs
 WORK_SIZE = (320, 240)
 GRID = (16, 12)  # columns, rows
 CELL_THRESHOLD = 0.12  # mean absolute difference (0..1) for a changed cell
+PEAK_WEIGHT = 0.5  # how much a cell's strongest local change counts
 MISALIGNED_SHARE = 0.55  # more than this share of changed cells: probably a different view
 MAX_REGIONS = 3
 CROP_EDGE = 448
@@ -49,7 +50,7 @@ def load(data: bytes) -> Image.Image:
 
 
 def _features(image: Image.Image) -> np.ndarray:
-    gray = ImageOps.grayscale(image.resize(WORK_SIZE)).filter(ImageFilter.GaussianBlur(2))
+    gray = ImageOps.grayscale(image.resize(WORK_SIZE)).filter(ImageFilter.GaussianBlur(1))
     arr = np.asarray(gray, dtype=np.float32) / 255.0
     # Normalise exposure so a lamp switched on isn't reported as damage.
     return (arr - arr.mean()) / (arr.std() + 1e-6) * 0.2 + 0.5
@@ -60,7 +61,12 @@ def _cell_diffs(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     h, w = a.shape
     diff = np.abs(a - b)
     cells = diff[: h - h % rows, : w - w % cols].reshape(rows, h // rows, cols, w // cols)
-    return cells.mean(axis=(1, 3))
+    cells = cells.transpose(0, 2, 1, 3).reshape(rows, cols, -1)
+    mean = cells.mean(axis=2)
+    # Thin changes like cracks barely move a cell's average, but they stand
+    # out in its brightest-changing pixels.
+    peak = np.percentile(cells, 90, axis=2)
+    return np.maximum(mean, peak * PEAK_WEIGHT)
 
 
 def similarity(a: Image.Image, b: Image.Image) -> float:
