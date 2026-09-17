@@ -2,7 +2,7 @@
 
 **Get your full rental deposit back, with proof.**
 
-Tenants in Indian cities regularly lose part of their security deposit to "damage" disputes at move-out, and neither side has reliable evidence of what the room looked like on day one. DepositGuard lets a tenant photograph every room at move-in and again at move-out. It fingerprints each photo so it can't be quietly swapped, finds exactly what changed, and uses a local AI model to separate **new damage** from what was **already there**. The tenant then shares the report with the owner, who can **agree or dispute** each finding.
+Tenants in Indian cities regularly lose part of their security deposit to "damage" disputes at move-out, and neither side has reliable evidence of what the room looked like on day one. DepositGuard lets a tenant photograph every room at move-in and again at move-out. It fingerprints each photo so it can't be quietly swapped, finds exactly what changed, and uses a local AI model to separate **new damage** from what was **already there**. Subsequently, the tenant provides the report to the property owner, who has the option to accept or contest each individual finding.
 
 Built for **First Commit** (Bharat Builds Tour by WeMakeDevs × AWS), Sept 17–20, 2026, on the **Build It** track: everything runs on your own machine with AWS open-source tools. No AWS account, card or bill needed.
 
