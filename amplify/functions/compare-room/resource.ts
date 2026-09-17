@@ -17,6 +17,8 @@ export const compareRoom = defineFunction({
       'us.amazon.nova-2-lite-v1:0',
       'us.amazon.nova-pro-v1:0',
       'us.amazon.nova-lite-v1:0',
+      'amazon.nova-pro-v1:0',
+      'amazon.nova-lite-v1:0',
     ].join(','),
   },
 });
