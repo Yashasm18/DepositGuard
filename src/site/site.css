@@ -5,7 +5,7 @@
    Importing the theme and utilities layers alone gives us the tokens and
    utility classes with no reset at all, so the landing and the app coexist.
    ------------------------------------------------------------------- */
-@layer theme, base, components, utilities;
+@layer theme, app, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 
@@ -78,6 +78,17 @@
   .dg-site a { color: inherit; text-decoration: none; }
 
   .dg-site ::selection { background: var(--color-brand); color: #07080a; }
+
+  /* Neutralise the app's .grid inside the landing. Tailwind's `grid` utility
+     only sets `display: grid` — it never sets tracks or gap — so below the lg
+     breakpoint there was nothing to override index.css's
+     `repeat(auto-fill, minmax(260px,1fr))` and `gap: 1rem`, and every landing
+     grid silently inherited them. This sits in @layer base, so the explicit
+     grid-cols-* / gap-* utilities (@layer utilities, later) still win. */
+  .dg-site .grid {
+    grid-template-columns: none;
+    gap: 0;
+  }
 }
 
 /* Lenis drives the scroll while the landing is mounted. */
@@ -91,6 +102,14 @@ html.lenis, html.lenis body { height: auto; }
   font-size: clamp(2.75rem, 7.2vw, 6.5rem);
   line-height: 0.95;
   letter-spacing: -0.03em;
+}
+/* Display type for a heading that shares its row with something else, so it
+   has roughly half the width the hero gets. */
+.dg-site .text-display-2 {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 4.8vw, 4.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.028em;
 }
 .dg-site .text-h2 {
   font-family: var(--font-display);
@@ -147,10 +166,15 @@ html.lenis, html.lenis body { height: auto; }
    AuthForm is shared with nothing else, but it is the app's real form
    and keeps its own markup and logic. Only its skin changes in here. */
 .dg-site .auth {
+  /* index.css:617 caps .auth at 420px and pushes it right with margin-left:auto,
+     which the old landing wanted. Here the form owns a grid column of its own,
+     so it should fill it. */
+  max-width: none;
+  margin-left: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   border-radius: 1rem;
-  padding: 1.5rem;
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
@@ -160,6 +184,7 @@ html.lenis, html.lenis body { height: auto; }
 .dg-site .auth .tabs button {
   flex: 1; padding: 0.5rem 0.75rem; border-radius: 999px;
   font-size: 0.8rem; color: var(--color-muted); transition: background 0.25s, color 0.25s;
+  white-space: nowrap; /* "Create account" must not break across two lines */
 }
 .dg-site .auth .tabs button[aria-selected="true"] { background: var(--color-paper); color: var(--color-ink); }
 .dg-site .auth label { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.8rem; color: var(--color-muted); }

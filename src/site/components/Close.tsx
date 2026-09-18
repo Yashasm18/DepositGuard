@@ -11,9 +11,12 @@ export default function Close({ auth }: { auth: ReactNode }) {
       <section id="start" className="relative scroll-mt-24 overflow-hidden px-6 py-32 md:py-44">
         <div className="pointer-events-none absolute left-1/2 top-1/2 size-[42rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/12 blur-[140px]" />
 
-        <div className="relative mx-auto grid min-w-0 max-w-6xl gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        {/* minmax gives the form a hard 26rem floor instead of a bare fraction,
+            so it cannot be squeezed into a column too narrow for its own
+            labels and tab row. */}
+        <div className="relative mx-auto grid min-w-0 max-w-6xl gap-14 lg:grid-cols-[1fr_minmax(26rem,1fr)] lg:items-center">
           <div>
-            <h2 className="text-display">
+            <h2 className="text-display-2">
               <RevealText text="Photograph the place" />
               <br />
               <RevealText gradient text="before you unpack." delay={0.14} />
