@@ -28,11 +28,23 @@ export function AuthForm({ onSignedIn }: { onSignedIn: (user: User) => void }) {
 
   return (
     <form className="card form auth" onSubmit={submit}>
-      <div className="tabs" role="tablist">
-        <button type="button" role="tab" aria-selected={mode === 'signin'} onClick={() => setMode('signin')}>
+      <div className="tabs" role="tablist" data-mode={mode}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'signin'}
+          onClick={() => setMode('signin')}
+          onKeyDown={(e) => e.key === 'ArrowRight' && setMode('signup')}
+        >
           Sign in
         </button>
-        <button type="button" role="tab" aria-selected={mode === 'signup'} onClick={() => setMode('signup')}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === 'signup'}
+          onClick={() => setMode('signup')}
+          onKeyDown={(e) => e.key === 'ArrowLeft' && setMode('signin')}
+        >
           Create account
         </button>
       </div>

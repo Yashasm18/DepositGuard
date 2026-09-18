@@ -243,24 +243,40 @@ export default function CompareDemo() {
               </div>
 
               <div className="ml-auto flex items-center rounded-full border border-line p-0.5">
-                {(["Tenant", "Owner link"] as const).map((t, i) => (
-                  <button
-                    key={t}
-                    onClick={() => setOwner(i === 1)}
-                    className={`relative rounded-full px-3.5 py-1.5 text-[0.75rem] transition-colors ${
-                      owner === (i === 1) ? "text-ink" : "text-muted hover:text-paper"
-                    }`}
-                  >
-                    {owner === (i === 1) && (
-                      <motion.span
-                        layoutId="viewpill"
-                        className="absolute inset-0 rounded-full bg-paper"
-                        transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                      />
-                    )}
-                    <span className="relative">{t}</span>
-                  </button>
-                ))}
+                {(["Tenant", "Owner link"] as const).map((t, i) => {
+                  const selected = owner === (i === 1);
+                  return (
+                    <button
+                      key={t}
+                      role="tab"
+                      aria-selected={selected}
+                      onClick={() => setOwner(i === 1)}
+                      // A segmented control is expected to move under the arrow keys.
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowRight") setOwner(true);
+                        if (e.key === "ArrowLeft") setOwner(false);
+                      }}
+                      className={`relative rounded-full px-3.5 py-1.5 text-[0.75rem] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+                        selected ? "text-ink" : "text-muted hover:text-paper"
+                      }`}
+                    >
+                      {selected && (
+                        <motion.span
+                          layoutId="viewpill"
+                          className="absolute inset-0 rounded-full bg-paper shadow-lg shadow-black/30"
+                          // Snappy with a little overshoot, settled well inside
+                          // 300ms so the control never feels like it lags the tap.
+                          transition={
+                            reduce
+                              ? { duration: 0 }
+                              : { type: "spring", stiffness: 520, damping: 34, mass: 0.7 }
+                          }
+                        />
+                      )}
+                      <span className="relative">{t}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               <button

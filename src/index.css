@@ -26,7 +26,7 @@
   --shadow: 0 1px 2px rgb(16 20 28 / 5%), 0 8px 24px rgb(16 20 28 / 6%);
 
   color-scheme: light;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
   line-height: 1.5;
@@ -89,7 +89,7 @@ img {
 }
 
 code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.75rem;
 }
 
@@ -655,28 +655,66 @@ input:focus {
 }
 
 .tabs {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   background: var(--bg);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
   padding: 4px;
+  isolation: isolate;
+}
+
+/* One thumb that slides, rather than a background jumping between buttons.
+   The overshoot in the curve is what makes it feel physical; it stays under
+   300ms so it never delays the interaction. */
+.tabs::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: transform 260ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.tabs[data-mode='signup']::before {
+  transform: translateX(100%);
 }
 
 .tabs button {
   font: inherit;
   font-weight: 600;
   border: 0;
-  border-radius: 8px;
+  border-radius: 999px;
   padding: 0.5rem;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
+  transition: color 200ms ease;
+}
+
+.tabs button:hover {
+  color: var(--text);
 }
 
 .tabs button[aria-selected='true'] {
-  background: var(--surface);
   color: var(--text);
-  box-shadow: var(--shadow);
+}
+
+.tabs button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabs::before {
+    transition-duration: 0.01ms;
+  }
 }
 
 .hint {

@@ -46,8 +46,11 @@
   --color-unclear: #ffc24b;     /* not enough evidence      */
 
   --font-display: "Instrument Serif", ui-serif, Georgia, serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  /* Instrument Sans is the superfamily match for Instrument Serif — same
+     designer, drawn to sit together — so the display and the body read as
+     one voice rather than two borrowed ones. */
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* Scoped to .dg-site so it cannot leak into the app, and inside @layer base
@@ -185,13 +188,40 @@ html.lenis, html.lenis body { height: auto; }
   gap: 0.9rem;
   color: var(--color-paper);
 }
-.dg-site .auth .tabs { display: flex; gap: 0.25rem; padding: 0.25rem; border: 1px solid var(--color-line); border-radius: 999px; }
+/* Same sliding thumb as the app's segmented control, in the dark skin. */
+.dg-site .auth .tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 0.25rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-ink) 60%, transparent);
+  isolation: isolate;
+}
+.dg-site .auth .tabs::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0.25rem auto 0.25rem 0.25rem;
+  width: calc(50% - 0.25rem);
+  border-radius: 999px;
+  background: var(--color-paper);
+  transition: transform 260ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.dg-site .auth .tabs[data-mode="signup"]::before { transform: translateX(100%); }
 .dg-site .auth .tabs button {
-  flex: 1; padding: 0.5rem 0.75rem; border-radius: 999px;
-  font-size: 0.8rem; color: var(--color-muted); transition: background 0.25s, color 0.25s;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  transition: color 200ms ease;
   white-space: nowrap; /* "Create account" must not break across two lines */
 }
-.dg-site .auth .tabs button[aria-selected="true"] { background: var(--color-paper); color: var(--color-ink); }
+.dg-site .auth .tabs button:hover { color: var(--color-paper); }
+.dg-site .auth .tabs button[aria-selected="true"] { color: var(--color-ink); }
+.dg-site .auth .tabs button:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
 .dg-site .auth label { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.8rem; color: var(--color-muted); }
 .dg-site .auth input {
   background: var(--color-ink); border: 1px solid var(--color-line); border-radius: 0.6rem;
