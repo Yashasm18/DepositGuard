@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "bash scripts/dev.sh",
     "dev": "vite",
+    "dev:api": "cd server && .venv/bin/uvicorn app:app --port 8787",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"

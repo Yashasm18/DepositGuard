@@ -42,19 +42,30 @@ server/app.py  (FastAPI)
 
 Requirements: Node.js 20+, Python 3.11, [Ollama](https://ollama.com). Works on an 8 GB Apple Silicon laptop.
 
+Set up once:
+
 ```bash
-# 1. Local AI model (about 3 GB, once)
-ollama pull qwen2.5vl:3b
-
-# 2. Backend
-cd server
-python3.11 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/uvicorn app:app --port 8787
-
-# 3. Website (in a second terminal, from the repo root)
+ollama pull qwen2.5vl:3b                              # local AI model, ~3 GB
+python3.11 -m venv server/.venv
+server/.venv/bin/pip install -r server/requirements.txt
 npm install
-npm run dev          # http://localhost:5173
+```
+
+Then, from the repo root, every time:
+
+```bash
+npm start            # http://localhost:5173
+```
+
+That runs both halves — the API on 8787 and the website on 5173 — and Ctrl-C
+stops them together. The app needs both: without the API every request comes
+back 502 and the site can only tell you it cannot reach the server.
+
+To run them in separate terminals instead:
+
+```bash
+npm run dev:api      # the Python API on 8787
+npm run dev          # the website on 5173
 ```
 
 Data is stored in `server/data/` (ignored by git). A comparison takes about a minute per room on a laptop; one runs at a time to keep memory use reasonable.
