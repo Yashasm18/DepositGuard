@@ -10,7 +10,11 @@ const POINTS = [
 
 export default function Share() {
   const [copied, setCopied] = useState(false);
-  const url = "depositguard.local/r/blr-koramangala-4b";
+  // Illustrative rather than live, but the shape is the real one: SharePanel
+  // builds `${window.location.origin}/#/share/${token}` where the token is a
+  // secrets.token_urlsafe(24). The page should not advertise a link format the
+  // router would reject — `#/share/:token` is the only route that exists.
+  const url = "localhost:5173/#/share/nT8xK2vQ9pLmR4sW1dYbZ7cF3hJ6gA0e";
 
   return (
     <section className="relative border-y border-line bg-surface/20 py-28 md:py-40">
