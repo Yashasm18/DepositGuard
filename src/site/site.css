@@ -11,8 +11,15 @@
 
 /* Importing the layers individually (above) disables Tailwind's automatic
    content detection, so the sources have to be named. Paths are relative to
-   this file. */
-@source "../**/*.{ts,tsx}";
+   this file.
+
+   Scanning ONLY this directory is deliberate. Aimed at all of src/, Tailwind
+   generates a utility for every class name the app happens to use, and any
+   name the two share then resolves in @layer utilities — which outranks the
+   app's own stylesheet and silently restyles the signed-in screens. The two
+   names that clashed have since been renamed in index.css, but keep this
+   narrow so the next one cannot happen. */
+@source "./";
 
 @theme {
   /* canvas */
@@ -78,17 +85,6 @@
   .dg-site a { color: inherit; text-decoration: none; }
 
   .dg-site ::selection { background: var(--color-brand); color: #07080a; }
-
-  /* Neutralise the app's .grid inside the landing. Tailwind's `grid` utility
-     only sets `display: grid` — it never sets tracks or gap — so below the lg
-     breakpoint there was nothing to override index.css's
-     `repeat(auto-fill, minmax(260px,1fr))` and `gap: 1rem`, and every landing
-     grid silently inherited them. This sits in @layer base, so the explicit
-     grid-cols-* / gap-* utilities (@layer utilities, later) still win. */
-  .dg-site .grid {
-    grid-template-columns: none;
-    gap: 0;
-  }
 }
 
 /* Lenis drives the scroll while the landing is mounted. */

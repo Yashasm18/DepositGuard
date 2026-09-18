@@ -63,7 +63,7 @@ export default function App() {
           </button>
         </div>
       </header>
-      <main className="container">
+      <main className="dg-container">
         {propertyId ? (
           <PropertyDetail propertyId={propertyId} />
         ) : (

@@ -32,7 +32,7 @@ export function SharedView({ token }: { token: string }) {
         </span>
         <span className="badge badge-info">Owner view</span>
       </header>
-      <main className="container">
+      <main className="dg-container">
         {error && <div className="alert alert-error">{error}</div>}
         {!property && !error && <p className="muted">Loading…</p>}
         {property && (
