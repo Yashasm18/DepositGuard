@@ -31,7 +31,7 @@ const FINDINGS: Finding[] = [
       "Nothing at this location in the move-in frame. The discolouration spreads outward from a point, which reads as a leak rather than a mark.",
     chargeable: "Chargeable — arose during tenancy",
     confidence: 0.94,
-    box: { x: 38, y: 30, w: 24, h: 26 },
+    box: { x: 26, y: 44, w: 25, h: 22 },
   },
   {
     id: "F-02",
@@ -41,7 +41,7 @@ const FINDINGS: Finding[] = [
       "Present in the move-in frame at the same position and the same length. The tenant cannot be charged for a crack the photographs show on day one.",
     chargeable: "Not chargeable — documented at move-in",
     confidence: 0.97,
-    box: { x: 16, y: 22, w: 11, h: 30 },
+    box: { x: 21, y: 19, w: 8, h: 30 },
   },
   {
     id: "F-03",
@@ -51,17 +51,17 @@ const FINDINGS: Finding[] = [
       "Light, evenly distributed abrasion at foot height across the whole run. Consistent with twenty-two months of ordinary use.",
     chargeable: "Not chargeable — fair wear and tear",
     confidence: 0.88,
-    box: { x: 70, y: 66, w: 22, h: 16 },
+    box: { x: 55, y: 62, w: 23, h: 8 },
   },
   {
     id: "F-04",
     verdict: "unclear",
-    title: "Area behind the door, lower right",
+    title: "Through the doorway, left of frame",
     reason:
-      "The move-out photograph was taken from a different angle and this area is partly occluded. The comparison cannot be made, and the report says so rather than guessing.",
+      "The doorway falls at a different angle between the two visits and the space beyond it is largely in shadow. The comparison cannot be made honestly, so the report says so rather than guessing.",
     chargeable: "Undetermined — re-photograph to resolve",
     confidence: 0.41,
-    box: { x: 56, y: 72, w: 14, h: 18 },
+    box: { x: 2, y: 42, w: 15, h: 28 },
   },
 ];
 
@@ -112,9 +112,9 @@ function Viewer({
       }}
     >
       {/* move-out sits underneath; move-in is clipped over the top */}
-      <RoomPhoto room="living" stage="moveout" className="absolute inset-0 size-full" />
+      <RoomPhoto stage="moveout" priority className="absolute inset-0 size-full" />
       <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - split}% 0 0)` }}>
-        <RoomPhoto room="living" stage="movein" className="absolute inset-0 size-full" />
+        <RoomPhoto stage="movein" priority className="absolute inset-0 size-full" />
       </div>
 
       {/* detection overlay */}
@@ -187,7 +187,9 @@ function Viewer({
 }
 
 export default function CompareDemo() {
-  const [split, setSplit] = useState(50);
+  // Opens showing most of the move-out frame: the water stain sits at 26–51%
+  // across, so a centred divider would hide the very thing worth looking at.
+  const [split, setSplit] = useState(30);
   const [active, setActive] = useState<string | null>(null);
   const [analysed, setAnalysed] = useState(false);
   const [running, setRunning] = useState(false);

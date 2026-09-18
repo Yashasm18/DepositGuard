@@ -10,14 +10,14 @@ const STEPS = [
     title: "Move in. Photograph each room.",
     body: "Walk the flat once. Every photo is stamped with the moment it was taken and given a SHA-256 fingerprint on the spot. Change a single pixel afterwards and the fingerprint no longer matches — so nothing can be quietly swapped in later.",
     chip: "sealed · 14:22:07 IST",
-    render: <RoomPhoto room="living" stage="movein" className="size-full" />,
+    render: <RoomPhoto stage="movein" className="size-full" />,
   },
   {
     n: "02",
     title: "Move out. Photograph the same spots.",
     body: "The app shows you each move-in frame and you line the new shot up against it. Same wall, same corner, roughly the same distance. If the angle drifts too far, it tells you before you leave the room rather than after.",
     chip: "matched to frame #04",
-    render: <RoomPhoto room="living" stage="moveout" className="size-full" />,
+    render: <RoomPhoto stage="moveout" className="size-full" />,
   },
   {
     n: "03",
@@ -26,11 +26,11 @@ const STEPS = [
     chip: "4 findings · 1 disputed",
     render: (
       <div className="relative size-full">
-        <RoomPhoto room="living" stage="moveout" className="size-full" />
+        <RoomPhoto stage="moveout" className="size-full" />
         <div className="absolute inset-0">
-          <span className="absolute left-[40%] top-[34%] size-[24%] rounded-lg border-2 border-damage shadow-[0_0_0_9999px_rgba(7,8,10,0.45)]" />
-          <span className="absolute left-[16%] top-[22%] h-[30%] w-[10%] rounded-lg border-2 border-preexisting" />
-          <span className="absolute left-[72%] top-[68%] h-[14%] w-[20%] rounded-lg border-2 border-wear" />
+          <span className="absolute left-[26%] top-[44%] h-[22%] w-[25%] rounded-lg border-2 border-damage shadow-[0_0_0_9999px_rgba(7,8,10,0.45)]" />
+          <span className="absolute left-[21%] top-[19%] h-[30%] w-[8%] rounded-lg border-2 border-preexisting" />
+          <span className="absolute left-[55%] top-[58%] h-[9%] w-[23%] rounded-lg border-2 border-wear" />
         </div>
       </div>
     ),
