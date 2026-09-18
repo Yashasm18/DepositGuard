@@ -16,7 +16,14 @@ interface Props {
  * photo. Works with a mouse, touch and the keyboard (it's a range input).
  */
 export function BeforeAfter({ before, after, beforeLabel = 'Move-in', afterLabel = 'Move-out', box, ratio }: Props) {
-  const [position, setPosition] = useState(50);
+  // Open where the finding is, not at the midpoint. The move-out layer is
+  // revealed rightward from the slider, so a box sitting right of centre stays
+  // hidden behind the move-in photo — the report would announce new damage and
+  // then show you the wall before it happened. Sit just left of the box so the
+  // whole of it is revealed, while keeping some move-in visible for context.
+  const [position, setPosition] = useState(() =>
+    box ? Math.min(Math.max(box.x * 100 - 6, 0), 55) : 50,
+  );
   const id = useId();
 
   return (
