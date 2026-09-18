@@ -118,6 +118,15 @@ html.lenis, html.lenis body { height: auto; }
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  /* Must sit on a plain INLINE element, never an inline-block.
+     background-clip: text paints only inside the element's own box. For an
+     inline-block that box follows line-height — 0.95 here, shorter than the
+     text — so descenders (g, y, p, j) fall outside it, have no gradient
+     behind them, and render transparent: the tail of the g disappears.
+     A plain inline box is sized by the font's own ascent + descent instead
+     (~1.31em), which covers them, and it adds no layout box, so the line
+     rhythm is untouched. Growing the inline-block with padding does fix the
+     paint area but shifts the line it sits on. */
 }
 .dg-site .eyebrow {
   font-family: var(--font-mono);

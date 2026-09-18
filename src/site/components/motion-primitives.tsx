@@ -59,7 +59,7 @@ export function RevealText({
             style={{ padding: "0.35em 0", margin: "-0.35em 0", clipPath: "inset(0)" }}
           >
             <motion.span
-              className={`inline-block${gradient ? " text-gradient" : ""}`}
+              className="inline-block"
               initial={reduce ? { opacity: 0 } : { y: "110%", opacity: 0 }}
               animate={
                 inView
@@ -74,7 +74,11 @@ export function RevealText({
                 ease: EASE,
               }}
             >
-              {word}
+              {/* The gradient goes on a plain inline span, not on this
+                  inline-block — see .text-gradient in site.css. This element
+                  must stay inline-block because transform does not apply to
+                  inline boxes, and the reveal animates one. */}
+              {gradient ? <span className="text-gradient">{word}</span> : word}
               {i < words.length - 1 ? " " : ""}
             </motion.span>
           </span>
