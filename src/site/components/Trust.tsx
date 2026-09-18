@@ -1,30 +1,40 @@
 import { motion } from "motion/react";
 import { Reveal, RevealText, useParallax } from "./motion-primitives";
 
+/**
+ * An excerpt of server/policies.cedar, verbatim apart from comment wrapping.
+ * If the real policy changes, change this with it — a marketing page claiming
+ * rules the server does not enforce is worse than showing none.
+ */
 const CEDAR = [
-  { t: "// The owner's link can read the report.", c: "comment" },
-  { t: "// That is the whole of what it can do.", c: "comment" },
+  { t: "// Tenants have full control over their own homes.", c: "comment" },
   { t: "permit (", c: "kw" },
-  { t: "  principal in Role::\"owner\",", c: "" },
-  { t: "  action in [", c: "" },
-  { t: "    Action::\"viewReport\",", c: "" },
-  { t: "    Action::\"respondToFinding\"", c: "" },
-  { t: "  ],", c: "" },
-  { t: "  resource == Tenancy::\"blr-koramangala-4b\"", c: "" },
-  { t: ") when {", c: "kw" },
-  { t: "  context.link.revoked == false &&", c: "" },
-  { t: "  context.now < context.link.expiresAt", c: "" },
+  { t: "  principal is User,", c: "" },
+  { t: "  action in [Action::\"view\", Action::\"edit\"],", c: "" },
+  { t: "  resource", c: "" },
+  { t: ")", c: "kw" },
+  { t: "when { resource has tenant &&", c: "kw" },
+  { t: "       resource.tenant == principal };", c: "" },
+  { t: "", c: "" },
+  { t: "// An owner with a valid share link can read the", c: "comment" },
+  { t: "// shared home and respond to findings, until the", c: "comment" },
+  { t: "// link expires or is revoked.", c: "comment" },
+  { t: "permit (", c: "kw" },
+  { t: "  principal is ShareLink,", c: "" },
+  { t: "  action in [Action::\"view\", Action::\"respond\"],", c: "" },
+  { t: "  resource", c: "" },
+  { t: ")", c: "kw" },
+  { t: "when {", c: "kw" },
+  { t: "  resource has property &&", c: "" },
+  { t: "  principal.property == resource.property &&", c: "" },
+  { t: "  !principal.revoked &&", c: "" },
+  { t: "  context.now < principal.expiresAt", c: "" },
   { t: "};", c: "kw" },
   { t: "", c: "" },
-  { t: "// Evidence is the tenant's alone to add,", c: "comment" },
-  { t: "// to re-seal, or to remove.", c: "comment" },
+  { t: "// Share links can never change evidence.", c: "comment" },
   { t: "forbid (", c: "kw" },
-  { t: "  principal in Role::\"owner\",", c: "" },
-  { t: "  action in [", c: "" },
-  { t: "    Action::\"addPhoto\",", c: "" },
-  { t: "    Action::\"deletePhoto\",", c: "" },
-  { t: "    Action::\"reseal\"", c: "" },
-  { t: "  ],", c: "" },
+  { t: "  principal is ShareLink,", c: "" },
+  { t: "  action == Action::\"edit\",", c: "" },
   { t: "  resource", c: "" },
   { t: ");", c: "kw" },
 ];
@@ -144,9 +154,11 @@ export default function Trust() {
                 </div>
                 <p className="mt-4 text-[0.92rem] leading-relaxed text-muted">
                   Who may do what is a policy, not an <code className="font-mono text-[0.85em] text-paper">if</code> statement
-                  buried in a handler. The tenant owns the evidence. The owner&rsquo;s link
-                  reads and responds, nothing more, and stops working when it expires or
-                  when the tenant revokes it. The rules sit in one file you can read.
+                  buried in a handler. There are three actions — view, edit and respond —
+                  and two kinds of principal: the tenant, and a share link. The tenant
+                  owns the evidence. The link views and responds, never edits, and stops
+                  working when it expires or is revoked. It is one file you can read
+                  end to end.
                 </p>
               </article>
             </Reveal>

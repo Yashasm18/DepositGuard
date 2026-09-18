@@ -19,7 +19,10 @@ type Finding = {
   reason: string;
   chargeable: string;
   confidence: number;
-  box: { x: number; y: number; w: number; h: number };
+  /** null for an UNCLEAR verdict. pipeline.py returns those with box: None
+   *  and location "entire photo" — the pair could not be compared at all,
+   *  so there is no region to point at. */
+  box: { x: number; y: number; w: number; h: number } | null;
 };
 
 const FINDINGS: Finding[] = [
@@ -56,12 +59,12 @@ const FINDINGS: Finding[] = [
   {
     id: "F-04",
     verdict: "unclear",
-    title: "Through the doorway, left of frame",
+    title: "Whole view — could not be compared",
     reason:
-      "The doorway falls at a different angle between the two visits and the space beyond it is largely in shadow. The comparison cannot be made honestly, so the report says so rather than guessing.",
-    chargeable: "Undetermined — re-photograph to resolve",
+      "Too much of this frame differs from its move-in twin, which reads as a different view rather than as damage. The pair is returned unclear with a note to retake it, and nothing in it is called damage.",
+    chargeable: "Undetermined — retake from the same spot",
     confidence: 0.41,
-    box: { x: 2, y: 42, w: 15, h: 28 },
+    box: null,
   },
 ];
 
@@ -121,6 +124,7 @@ function Viewer({
       <AnimatePresence>
         {analysed &&
           FINDINGS.map((f, i) => {
+            if (!f.box) return null; // whole-view verdict: nothing to outline
             const on = active === f.id;
             return (
               <motion.button
@@ -283,7 +287,7 @@ export default function CompareDemo() {
                   </div>
                 )}
                 <p className="mt-3 font-mono text-[0.66rem] text-faint">
-                  Living room · north wall · frame #04 · aligned, Δangle 3.1°
+                  Living room · matched to move-in 2 · similarity 0.94 · 3 regions
                 </p>
               </div>
 
@@ -348,6 +352,11 @@ export default function CompareDemo() {
                                     className="overflow-hidden"
                                   >
                                     <p className="pt-2.5 text-[0.8rem] leading-relaxed text-muted">{f.reason}</p>
+                                    {!f.box && (
+                                      <p className="mt-2 font-mono text-[0.62rem] text-faint">
+                                        applies to the whole photograph — no region to outline
+                                      </p>
+                                    )}
                                     <p className="mt-2 font-mono text-[0.66rem]" style={{ color: v.color }}>
                                       {f.chargeable}
                                     </p>
