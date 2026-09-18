@@ -3,7 +3,7 @@ import { Magnetic, Reveal, RevealText } from './motion-primitives';
 
 /**
  * Closing call to action. The `auth` slot takes the app's real AuthForm, so
- * the landing ends at an actual account rather than at a link to one — unless
+ * the landing ends at an actual account rather than at a link to one; unless
  * the visitor already has one, in which case asking them to sign up again
  * would be the wrong thing to put in front of them.
  */
@@ -114,7 +114,7 @@ export default function Close({
             </div>
             <p className="mt-4 max-w-sm text-[0.82rem] leading-relaxed text-faint">
               Evidence for security deposits, built for Indian rentals. Runs on your own
-              machine. Not legal advice — a record you can put in front of someone.
+              machine. Not legal advice, just a record you can put in front of someone.
             </p>
           </div>
           <div className="flex flex-wrap gap-x-8 gap-y-2 font-mono text-[0.68rem] text-faint">

@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     // Bind IPv4 explicitly. Vite's default resolves to IPv6 (::1) on this
-    // machine, and Chrome tries 127.0.0.1 first — so the browser gets
+    // machine, and Chrome tries 127.0.0.1 first, so the browser gets
     // connection refused while curl, which is happy with IPv6, succeeds.
     // The API below is IPv4 too, so this keeps both on one stack.
     host: '127.0.0.1',

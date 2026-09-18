@@ -18,7 +18,7 @@ interface Props {
 export function BeforeAfter({ before, after, beforeLabel = 'Move-in', afterLabel = 'Move-out', box, ratio }: Props) {
   // Open where the finding is, not at the midpoint. The move-out layer is
   // revealed rightward from the slider, so a box sitting right of centre stays
-  // hidden behind the move-in photo — the report would announce new damage and
+  // hidden behind the move-in photo; the report would announce new damage and
   // then show you the wall before it happened. Sit just left of the box so the
   // whole of it is revealed, while keeping some move-in visible for context.
   const [position, setPosition] = useState(() =>

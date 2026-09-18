@@ -8,7 +8,7 @@ const STEPS = [
   {
     n: "01",
     title: "Move in. Photograph each room.",
-    body: "Walk the flat once. Every photo is stamped with the moment it was taken and given a SHA-256 fingerprint on the spot. Change a single pixel afterwards and the fingerprint no longer matches — so nothing can be quietly swapped in later.",
+    body: "Walk the flat once. Every photo is stamped with the moment it was taken and given a SHA-256 fingerprint on the spot. Change a single pixel afterwards and the fingerprint no longer matches, so nothing can be quietly swapped in later.",
     chip: "sealed · 14:22:07 IST",
     render: <RoomPhoto stage="movein" className="size-full" />,
   },
@@ -47,7 +47,7 @@ export default function HowItWorks() {
     const ctx = gsap.context(() => {
       const mm = gsap.matchMedia();
 
-      // Pinned horizontal travel — desktop, motion-friendly visitors only.
+      // Pinned horizontal travel; desktop, motion-friendly visitors only.
       mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
         const panels = gsap.utils.toArray<HTMLElement>(".hiw-panel");
 
@@ -102,7 +102,7 @@ export default function HowItWorks() {
   return (
     <section id="how" className="scroll-mt-24 bg-surface/30">
       <div className="mx-auto max-w-6xl px-6 pt-28 md:pt-40">
-        <div className="eyebrow mb-6">02 — How it works</div>
+        <div className="eyebrow mb-6">02 · How it works</div>
         <h2 className="text-h2 max-w-[16ch]">
           <RevealText text="Three steps, and the argument is over." />
         </h2>

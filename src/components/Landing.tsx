@@ -18,7 +18,7 @@ import Close from '../site/components/Close';
 /**
  * The signed-out landing page.
  *
- * This is the front door at `#`, shown to everyone — signed in or not — rather
+ * This is the front door at `#`, shown to everyone; signed in or not, rather
  * than a fallback for signed-out visitors. Everything under src/site is the
  * marketing surface; the sign-in itself is still the app's own AuthForm, so
  * there is exactly one place where authentication happens.
@@ -27,8 +27,8 @@ export function Landing({
   user,
   onSignedIn,
 }: {
-  /** null when signed out. Signed-in visitors still see the landing — it is
-   *  the front door — but are offered their homes rather than a sign-up form. */
+  /** null when signed out. Signed-in visitors still see the landing; it is
+   *  the front door, but are offered their homes rather than a sign-up form. */
   user: User | null;
   onSignedIn: (user: User) => void;
 }) {

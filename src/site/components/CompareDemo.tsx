@@ -20,7 +20,7 @@ type Finding = {
   chargeable: string;
   confidence: number;
   /** null for an UNCLEAR verdict. pipeline.py returns those with box: None
-   *  and location "entire photo" — the pair could not be compared at all,
+   *  and location "entire photo"; the pair could not be compared at all,
    *  so there is no region to point at. */
   box: { x: number; y: number; w: number; h: number } | null;
 };
@@ -32,7 +32,7 @@ const FINDINGS: Finding[] = [
     title: "Water staining, north wall above skirting",
     reason:
       "Nothing at this location in the move-in frame. The discolouration spreads outward from a point, which reads as a leak rather than a mark.",
-    chargeable: "Chargeable — arose during tenancy",
+    chargeable: "Chargeable: arose during tenancy",
     confidence: 0.94,
     box: { x: 26, y: 44, w: 25, h: 22 },
   },
@@ -42,7 +42,7 @@ const FINDINGS: Finding[] = [
     title: "Hairline crack, left of the window",
     reason:
       "Present in the move-in frame at the same position and the same length. The tenant cannot be charged for a crack the photographs show on day one.",
-    chargeable: "Not chargeable — documented at move-in",
+    chargeable: "Not chargeable: documented at move-in",
     confidence: 0.97,
     box: { x: 21, y: 19, w: 8, h: 30 },
   },
@@ -52,17 +52,17 @@ const FINDINGS: Finding[] = [
     title: "Scuffing along the skirting board",
     reason:
       "Light, evenly distributed abrasion at foot height across the whole run. Consistent with twenty-two months of ordinary use.",
-    chargeable: "Not chargeable — fair wear and tear",
+    chargeable: "Not chargeable: fair wear and tear",
     confidence: 0.88,
     box: { x: 55, y: 62, w: 23, h: 8 },
   },
   {
     id: "F-04",
     verdict: "unclear",
-    title: "Whole view — could not be compared",
+    title: "Whole view: could not be compared",
     reason:
       "Too much of this frame differs from its move-in twin, which reads as a different view rather than as damage. The pair is returned unclear with a note to retake it, and nothing in it is called damage.",
-    chargeable: "Undetermined — retake from the same spot",
+    chargeable: "Undetermined: retake from the same spot",
     confidence: 0.41,
     box: null,
   },
@@ -218,7 +218,7 @@ export default function CompareDemo() {
   return (
     <section id="compare" className="relative scroll-mt-24 border-y border-line bg-surface/20 py-28 md:py-40">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="eyebrow mb-6">03 — The comparison</div>
+        <div className="eyebrow mb-6">03 · The comparison</div>
         <h2 className="text-h2 max-w-[18ch]">
           <RevealText text="Both of you look at" />{" "}
           <RevealText gradient text="the same evidence." delay={0.14} />
@@ -226,7 +226,7 @@ export default function CompareDemo() {
         <Reveal delay={0.08}>
           <p className="mt-7 max-w-2xl text-[1.05rem] leading-relaxed text-muted">
             This is the real interface, with a sample tenancy loaded. Wipe between the
-            two visits, run the comparison, then switch to the owner&rsquo;s view — the
+            two visits, run the comparison, then switch to the owner&rsquo;s view: the
             read-only link they open without an account.
           </p>
         </Reveal>
@@ -370,7 +370,7 @@ export default function CompareDemo() {
                                     <p className="pt-2.5 text-[0.8rem] leading-relaxed text-muted">{f.reason}</p>
                                     {!f.box && (
                                       <p className="mt-2 font-mono text-[0.62rem] text-faint">
-                                        applies to the whole photograph — no region to outline
+                                        applies to the whole photograph, no region to outline
                                       </p>
                                     )}
                                     <p className="mt-2 font-mono text-[0.66rem]" style={{ color: v.color }}>

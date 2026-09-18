@@ -57,7 +57,7 @@ Then, from the repo root, every time:
 npm start            # http://localhost:5173
 ```
 
-That runs both halves — the API on 8787 and the website on 5173 — and Ctrl-C
+That runs both halves; the API on 8787 and the website on 5173, and Ctrl-C
 stops them together. The app needs both: without the API every request comes
 back 502 and the site can only tell you it cannot reach the server.
 

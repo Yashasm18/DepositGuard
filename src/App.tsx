@@ -23,13 +23,13 @@ function useHash(): string {
 
 /**
  * Routes:
- *   #                 the landing page — the front door, for everyone
+ *   #                 the landing page; the front door, for everyone
  *   #/homes           your homes (requires an account)
  *   #/homes/:id       one home (requires an account)
  *   #/share/:token    a read-only report, opened by an owner with no account
  *
  * The landing is a route rather than a signed-out fallback on purpose. Keyed
- * off auth state, anyone with a live session would never see it again — they
+ * off auth state, anyone with a live session would never see it again; they
  * would open the app and land straight in the upload screens.
  */
 export default function App() {

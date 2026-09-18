@@ -1,6 +1,6 @@
 :root {
-  /* The brand gradient. Identical in both themes — it is the mark, not a
-     theme colour — and the same pair the landing page uses, so the two
+  /* The brand gradient. Identical in both themes; it is the mark, not a
+     theme colour, and the same pair the landing page uses, so the two
      halves of the product read as one thing. */
   --brand-1: #8b7cff;
   --brand-2: #46e5d0;
@@ -52,8 +52,7 @@ h5 {
 }
 
 /* The display face is loaded in index.html and is the strongest single cue
-   tying the signed-in app to the landing page. Kept to the large headings —
-   at h3 and below the sans is more legible. */
+   tying the signed-in app to the landing page. Kept to the large headings; at h3 and below the sans is more legible. */
 h1,
 h2,
 .section-title {

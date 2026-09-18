@@ -75,7 +75,7 @@ export function RevealText({
               }}
             >
               {/* The gradient goes on a plain inline span, not on this
-                  inline-block — see .text-gradient in site.css. This element
+                  inline-block, see .text-gradient in site.css. This element
                   must stay inline-block because transform does not apply to
                   inline boxes, and the reveal animates one. */}
               {gradient ? <span className="text-gradient">{word}</span> : word}
@@ -178,7 +178,7 @@ export function Counter({
     const ms = reduce ? 0 : duration * 1000;
     const step = (now: number) => {
       const t = ms === 0 ? 1 : Math.min(1, (now - start) / ms);
-      // easeOutExpo — fast commitment, long settle. Reads as "counting up".
+      // easeOutExpo; fast commitment, long settle. Reads as "counting up".
       const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
       setValue(Math.round(to * eased));
       if (t < 1) raf = requestAnimationFrame(step);

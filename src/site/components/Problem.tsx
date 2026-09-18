@@ -45,7 +45,7 @@ function Quote({
 export default function Problem() {
   return (
     <section id="problem" className="relative mx-auto max-w-6xl scroll-mt-24 px-6 py-28 md:py-40">
-      <div className="eyebrow mb-6">01 — The problem</div>
+      <div className="eyebrow mb-6">01 · The problem</div>
 
       <h2 className="text-h2 max-w-[19ch]">
         <RevealText text="At move-out, there is" />{" "}
@@ -56,7 +56,7 @@ export default function Problem() {
       <Reveal delay={0.1}>
         <p className="mt-8 max-w-2xl text-[1.05rem] leading-relaxed text-muted">
           The owner walks through the flat, points at a mark on the wall, and names a
-          number. You have a handful of photos somewhere in your camera roll — different
+          number. You have a handful of photos somewhere in your camera roll: different
           rooms, different angles, different light, and dates nobody has any reason to
           believe. There is nothing to compare, so the argument is settled by whoever is
           more forceful. Usually that is the person still holding your deposit.

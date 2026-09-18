@@ -1,4 +1,4 @@
-/* ── DepositGuard landing — design tokens and base ──────────────────
+/* ── DepositGuard landing; design tokens and base ──────────────────
    Deliberately NOT `@import "tailwindcss"`. That would pull in Preflight,
    whose global element reset would silently restyle every existing screen
    in src/index.css (PropertyList, ComparisonReport, AuthForm, …).
@@ -15,7 +15,7 @@
 
    Scanning ONLY this directory is deliberate. Aimed at all of src/, Tailwind
    generates a utility for every class name the app happens to use, and any
-   name the two share then resolves in @layer utilities — which outranks the
+   name the two share then resolves in @layer utilities, which outranks the
    app's own stylesheet and silently restyles the signed-in screens. The two
    names that clashed have since been renamed in index.css, but keep this
    narrow so the next one cannot happen. */
@@ -37,7 +37,7 @@
   --color-brand: #8b7cff;
   --color-brand-2: #46e5d0;
 
-  /* evidence classification — the product's semantic core. These four
+  /* evidence classification; the product's semantic core. These four
      mean the same thing here, in the detection overlay, in the findings
      list and in the shared report. */
   --color-damage: #ff5c5c;      /* new damage               */
@@ -46,8 +46,8 @@
   --color-unclear: #ffc24b;     /* not enough evidence      */
 
   --font-display: "Instrument Serif", ui-serif, Georgia, serif;
-  /* Instrument Sans is the superfamily match for Instrument Serif — same
-     designer, drawn to sit together — so the display and the body read as
+  /* Instrument Sans is the superfamily match for Instrument Serif; same
+     designer, drawn to sit together, so the display and the body read as
      one voice rather than two borrowed ones. */
   --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -123,8 +123,8 @@ html.lenis, html.lenis body { height: auto; }
   color: transparent;
   /* Must sit on a plain INLINE element, never an inline-block.
      background-clip: text paints only inside the element's own box. For an
-     inline-block that box follows line-height — 0.95 here, shorter than the
-     text — so descenders (g, y, p, j) fall outside it, have no gradient
+     inline-block that box follows line-height; 0.95 here, shorter than the
+     text, so descenders (g, y, p, j) fall outside it, have no gradient
      behind them, and render transparent: the tail of the g disappears.
      A plain inline box is sized by the font's own ascent + descent instead
      (~1.31em), which covers them, and it adds no layout box, so the line
@@ -246,7 +246,7 @@ html.lenis, html.lenis body { height: auto; }
 /* Graceful fallback, not a blunt kill switch. */
 @media (prefers-reduced-motion: reduce) {
   /* The horizontal track is laid out in CSS but moved by GSAP, and GSAP's
-     matchMedia deliberately does not register that tween here — so it has
+     matchMedia deliberately does not register that tween here, so it has
      to collapse back to an ordinary vertical stack or the later panels
      would be unreachable. */
   .dg-site .hiw-track {

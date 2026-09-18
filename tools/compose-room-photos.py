@@ -1,8 +1,8 @@
 """
 Build the move-in / move-out demo pair from one stock photograph.
 
-No stock library has a genuine matched pair — that is the whole point of the
-product — so the move-out frame is composited. The rules it follows are the
+No stock library has a genuine matched pair; that is the whole point of the
+product, so the move-out frame is composited. The rules it follows are the
 product's own semantics:
 
   * the hairline crack appears in BOTH frames, identically. It is the

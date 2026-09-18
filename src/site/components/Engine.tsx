@@ -12,20 +12,20 @@ const STAGES = [
   {
     k: "02",
     title: "Pair each photo with its move-in twin",
-    body: "Every move-out photo is matched to whichever move-in photo it most resembles. If more than 55% of the frame has changed, that is not damage — it is a different view — so the pair is returned as unclear, with a note to retake it, rather than analysed.",
+    body: "Every move-out photo is matched to whichever move-in photo it most resembles. If more than 55% of the frame has changed, that is not damage but a different view, so the pair is returned as unclear, with a note to retake it, rather than analysed.",
     tag: "matched on similarity · misaligned above 0.55",
   },
   {
     k: "03",
-    title: "Find what changed — without AI",
-    body: "Plain image comparison does the detection. Both photos are reduced to a 16 × 12 grid with exposure normalised — so a lamp switched on is not reported as damage — and cells that differ by more than the threshold are grouped into at most three regions. No model has been asked anything yet.",
+    title: "Find what changed, without AI",
+    body: "Plain image comparison does the detection. Both photos are reduced to a 16 × 12 grid with exposure normalised (so a lamp switched on is not reported as damage), and cells that differ by more than the threshold are grouped into at most three regions. No model has been asked anything yet.",
     tag: "16 × 12 grid · at most 3 regions",
     highlight: true,
   },
   {
     k: "04",
     title: "Ask the model only about those regions",
-    body: "Each region is cropped from both photographs and handed to a vision model side by side, with one question: what changed here, and is it damage, pre-existing, or wear? A small local model is far more accurate on a 448px crop than on a whole room — and far faster.",
+    body: "Each region is cropped from both photographs and handed to a vision model side by side, with one question: what changed here, and is it damage, pre-existing, or wear? A small local model is far more accurate on a 448px crop than on a whole room, and far faster.",
     tag: "local vision model · one call per region",
     highlight: true,
   },
@@ -45,7 +45,7 @@ export default function Engine() {
 
   return (
     <section id="engine" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-28 md:py-40">
-      <div className="eyebrow mb-6">04 — Under the hood</div>
+      <div className="eyebrow mb-6">04 · Under the hood</div>
       <h2 className="text-h2 max-w-[20ch]">
         <RevealText text="The trick is that the AI goes" />{" "}
         <RevealText gradient text="second." delay={0.18} />
@@ -54,7 +54,7 @@ export default function Engine() {
         <p className="mt-7 max-w-2xl text-[1.05rem] leading-relaxed text-muted">
           Handing a whole room photograph to a vision model and asking &ldquo;what&rsquo;s
           different?&rdquo; is slow and unreliable. So ordinary image comparison finds the
-          changed areas first, and the model is only ever asked about those — a few small
+          changed areas first, and the model is only ever asked about those: a few small
           crops, side by side. Cheap detection, expensive judgement, in that order.
         </p>
       </Reveal>

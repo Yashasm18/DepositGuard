@@ -13,7 +13,7 @@ Reads `public/rooms/source-room.jpg` and writes `living-movein.jpg` and
 
 ### Why the move-out frame is composited
 
-No stock library has a genuine matched move-in / move-out pair — that absence
+No stock library has a genuine matched move-in / move-out pair; that absence
 is the gap DepositGuard exists to fill. So the move-out frame is built from the
 same photograph, following the product's own semantics rather than being
 decorative:
@@ -21,7 +21,7 @@ decorative:
 - the **hairline crack** appears in *both* frames at the same position, because
   it is the "already there at move-in" finding and therefore has to actually be
   there;
-- the **water stain** appears only at move-out — that is the new damage;
+- the **water stain** appears only at move-out; that is the new damage;
 - **skirting scuff** is faint at move-in and heavier at move-out;
 - the two frames carry **slightly different exposure and white balance**, so
   "ignores changes that are only lighting" is a claim the demo exercises rather
@@ -33,11 +33,11 @@ here, re-measure them.**
 
 ### Photo credit
 
-`source-room.jpg` — empty interior, [Unsplash](https://unsplash.com/photos/an-empty-room-with-white-walls-and-wood-floors-1692133220749).
+`source-room.jpg`; empty interior, [Unsplash](https://unsplash.com/photos/an-empty-room-with-white-walls-and-wood-floors-1692133220749).
 Used under the [Unsplash Licence](https://unsplash.com/license): free to use,
 no permission or attribution required. Credited here as a courtesy and so the
 provenance is recorded.
 
 To use your own photographs instead, replace `source-room.jpg` and re-run the
-script — or drop in your own `living-movein.jpg` / `living-moveout.jpg` and
+script, or drop in your own `living-movein.jpg` / `living-moveout.jpg` and
 skip it entirely.

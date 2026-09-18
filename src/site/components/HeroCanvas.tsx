@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
  * The hero backdrop: one fragment shader on a screen-covering triangle.
  *
  * Written against raw WebGL rather than three.js/R3F on purpose. There is no
- * scene, no camera, no geometry and no raycasting here — every one of which is
- * what those libraries exist to provide — so pulling in ~600kB for a single
+ * scene, no camera, no geometry and no raycasting here; every one of which is
+ * what those libraries exist to provide, so pulling in ~600kB for a single
  * draw call would be paying a lot for nothing. It also sidesteps R3F's
  * optional `expo` peer, which does not resolve cleanly in this project.
  */
@@ -175,7 +175,7 @@ export function HeroCanvas() {
       document.removeEventListener('visibilitychange', onVisibility);
       // Deliberately NOT calling WEBGL_lose_context here. StrictMode runs
       // effects twice in development, so this cleanup fires while the second
-      // mount is already using the context — force-losing it leaves a blank
+      // mount is already using the context; force-losing it leaves a blank
       // white canvas. Dropping the references is enough; the browser reclaims
       // the context when the canvas is collected.
       gl.deleteProgram(prog);

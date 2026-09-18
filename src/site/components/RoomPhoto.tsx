@@ -3,7 +3,7 @@
  *
  * These are one stock photograph of an empty rented room (Unsplash licence,
  * no attribution required), with the move-out frame composited from the same
- * source — see tools/compose-room-photos.py. No stock library has a genuine
+ * source, see tools/compose-room-photos.py. No stock library has a genuine
  * matched pair, which is precisely the gap the product exists to fill.
  *
  * The compositing follows the product's own semantics rather than being

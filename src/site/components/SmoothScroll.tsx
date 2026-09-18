@@ -8,7 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
  *
  * The important detail is the handoff to GSAP: instead of letting Lenis run its
  * own requestAnimationFrame loop, we drive it from gsap.ticker. One loop, one
- * paint per frame — otherwise Lenis and ScrollTrigger tick independently and
+ * paint per frame; otherwise Lenis and ScrollTrigger tick independently and
  * pinned sections visibly lag the scroll by a frame.
  */
 export default function SmoothScroll() {

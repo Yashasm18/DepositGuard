@@ -12,7 +12,7 @@ function HashChip() {
 
   useEffect(() => {
     if (reduce) return;
-    // Cosmetic scramble — signals "a fingerprint is being taken" without
+    // Cosmetic scramble; signals "a fingerprint is being taken" without
     // pretending to be a real digest of anything.
     const id = setInterval(() => {
       setHash((h) => {
@@ -83,7 +83,7 @@ export default function Hero() {
         >
           You hand over ₹50,000 to ₹2,00,000 and nobody writes down what the place
           looked like. DepositGuard turns move-in day into sealed, timestamped
-          evidence — so move-out is a comparison, not an argument.
+          evidence, so move-out is a comparison, not an argument.
         </motion.p>
 
         <motion.div

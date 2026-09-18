@@ -13,13 +13,13 @@ export default function Share() {
   // Illustrative rather than live, but the shape is the real one: SharePanel
   // builds `${window.location.origin}/#/share/${token}` where the token is a
   // secrets.token_urlsafe(24). The page should not advertise a link format the
-  // router would reject — `#/share/:token` is the only route that exists.
+  // router would reject; `#/share/:token` is the only route that exists.
   const url = "localhost:5173/#/share/nT8xK2vQ9pLmR4sW1dYbZ7cF3hJ6gA0e";
 
   return (
     <section className="relative border-y border-line bg-surface/20 py-28 md:py-40">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="eyebrow mb-6">07 — Settling it</div>
+        <div className="eyebrow mb-6">07 · Settling it</div>
         <h2 className="text-h2 max-w-[17ch]">
           <RevealText text="Send one link. Then stop arguing from" />{" "}
           <RevealText gradient text="memory." delay={0.2} />

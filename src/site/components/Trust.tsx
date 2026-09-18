@@ -3,7 +3,7 @@ import { Reveal, RevealText, useParallax } from "./motion-primitives";
 
 /**
  * An excerpt of server/policies.cedar, verbatim apart from comment wrapping.
- * If the real policy changes, change this with it — a marketing page claiming
+ * If the real policy changes, change this with it; a marketing page claiming
  * rules the server does not enforce is worse than showing none.
  */
 const CEDAR = [
@@ -86,14 +86,14 @@ export default function Trust() {
         <div className="relative mx-auto max-w-6xl px-6">
           <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
             <div>
-              <div className="eyebrow mb-6">05 — Where it runs</div>
+              <div className="eyebrow mb-6">05 · Where it runs</div>
               <h2 className="text-h2 max-w-[14ch]">
                 <RevealText text="Nothing is uploaded." />
               </h2>
               <Reveal delay={0.08}>
                 <p className="mt-7 max-w-lg text-[1.05rem] leading-relaxed text-muted">
                   Everything happens on your laptop: the database, the photographs, the
-                  model. Not as a privacy slogan — as a straightforward consequence of what
+                  model. Not as a privacy slogan, but as a straightforward consequence of what
                   this evidence is. It is the inside of somebody&rsquo;s home, room by room,
                   with the date attached. That does not belong on someone else&rsquo;s server.
                 </p>
@@ -114,7 +114,7 @@ export default function Trust() {
 
       {/* ── AWS open source ─────────────────────────────────── */}
       <section id="aws" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-28 md:py-40">
-        <div className="eyebrow mb-6">06 — Built on</div>
+        <div className="eyebrow mb-6">06 · Built on</div>
         <h2 className="text-h2 max-w-[20ch]">
           <RevealText text="Two open-source pieces from AWS do the load-bearing work." />
         </h2>
@@ -133,7 +133,7 @@ export default function Trust() {
                 <p className="mt-4 text-[0.92rem] leading-relaxed text-muted">
                   AWS&rsquo;s open-source agent SDK runs the review. It takes each pair of
                   crops, drives the local vision model, and turns the answer into a
-                  structured finding — classification, confidence and reasoning — instead
+                  structured finding (classification, confidence and reasoning) instead
                   of a paragraph of prose someone has to interpret.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
@@ -154,7 +154,7 @@ export default function Trust() {
                 </div>
                 <p className="mt-4 text-[0.92rem] leading-relaxed text-muted">
                   Who may do what is a policy, not an <code className="font-mono text-[0.85em] text-paper">if</code> statement
-                  buried in a handler. There are three actions — view, edit and respond —
+                  buried in a handler. There are three actions (view, edit and respond)
                   and two kinds of principal: the tenant, and a share link. The tenant
                   owns the evidence. The link views and responds, never edits, and stops
                   working when it expires or is revoked. It is one file you can read
