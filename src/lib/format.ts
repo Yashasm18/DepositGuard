@@ -10,3 +10,11 @@ export function formatDateTime(iso: string | null | undefined): string {
 export function formatDate(epochSeconds: number): string {
   return new Date(epochSeconds * 1000).toLocaleDateString('en-IN', { dateStyle: 'medium' });
 }
+
+/** A plain calendar day, e.g. "21 May 2026". The API stores these as ISO
+ *  date strings; showing that raw reads like a database field. */
+export function formatDay(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('en-IN', { dateStyle: 'medium' });
+}

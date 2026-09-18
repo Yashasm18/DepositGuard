@@ -26,7 +26,8 @@
   --shadow: 0 1px 2px rgb(16 20 28 / 5%), 0 8px 24px rgb(16 20 28 / 6%);
 
   color-scheme: light;
-  font-family: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-optical-sizing: auto;
   color: var(--text);
   background: var(--bg);
   line-height: 1.5;
@@ -85,6 +86,15 @@ img {
 
 .small {
   font-size: 0.82rem;
+}
+
+/* Deposits, dates and counts line up and stay a fixed width, so numbers
+   do not shift as they change. */
+.muted,
+.small,
+.pill,
+code {
+  font-variant-numeric: tabular-nums;
 }
 
 code {
@@ -813,20 +823,39 @@ input:focus {
   gap: 0.5rem;
 }
 
+/* A stepper, drawn as real dots joined by a rail rather than as typed
+   circle characters, which never aligned with the text and changed size
+   between fonts. */
 .progress {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 1rem;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
   padding: 0;
-  margin: 0.4rem 0 0;
+  margin: 0.55rem 0 0;
   font-size: 0.78rem;
   color: var(--muted);
 }
 
+.progress li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.7rem 0.25rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  transition: color 240ms ease, background 240ms ease, border-color 240ms ease;
+}
+
 .progress li::before {
-  content: '○';
-  margin-right: 0.3rem;
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentcolor;
+  opacity: 0.45;
+  transition: opacity 240ms ease, box-shadow 240ms ease, transform 240ms ease;
 }
 
 .progress li.done {
@@ -834,17 +863,29 @@ input:focus {
 }
 
 .progress li.done::before {
-  content: '●';
+  opacity: 1;
 }
 
 .progress li.current {
   color: var(--text);
   font-weight: 600;
+  background: var(--primary-soft);
+  border-color: color-mix(in oklab, var(--primary) 35%, transparent);
 }
 
 .progress li.current::before {
-  content: '◉';
-  color: var(--primary);
+  background: var(--primary);
+  opacity: 1;
+  transform: scale(1.15);
+  /* a soft halo marks where you are without another element to lay out */
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 22%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress li,
+  .progress li::before {
+    transition-duration: 0.01ms;
+  }
 }
 
 .thumb {

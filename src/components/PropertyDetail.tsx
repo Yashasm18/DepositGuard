@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api, type Property } from '../lib/api';
-import { formatInr } from '../lib/format';
+import { formatDay, formatInr } from '../lib/format';
 import { RoomCard } from './RoomCard';
 import { SharePanel } from './SharePanel';
 
@@ -53,7 +53,7 @@ export function PropertyDetail({ propertyId }: { propertyId: string }) {
     property.address,
     property.ownerName && `Owner: ${property.ownerName}`,
     property.depositAmount != null && `Deposit ${formatInr(property.depositAmount)}`,
-    property.moveInDate && `Moved in ${property.moveInDate}`,
+    property.moveInDate && `Moved in ${formatDay(property.moveInDate)}`,
   ].filter(Boolean);
 
   return (

@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, type PropertySummary } from '../lib/api';
-import { formatInr } from '../lib/format';
+import { formatDay, formatInr } from '../lib/format';
 
 export function PropertyList({ onOpen }: { onOpen: (id: string) => void }) {
   const [properties, setProperties] = useState<PropertySummary[] | null>(null);
@@ -50,7 +50,7 @@ export function PropertyList({ onOpen }: { onOpen: (id: string) => void }) {
             <p className="small">
               {p.roomCount} room{p.roomCount === 1 ? '' : 's'}
               {p.depositAmount != null ? ` · Deposit ${formatInr(p.depositAmount)}` : ''}
-              {p.moveInDate ? ` · Moved in ${p.moveInDate}` : ''}
+              {p.moveInDate ? ` · Moved in ${formatDay(p.moveInDate)}` : ''}
             </p>
           </button>
         ))}
