@@ -1,0 +1,231 @@
+/* ── DepositGuard landing — design tokens and base ──────────────────
+   Deliberately NOT `@import "tailwindcss"`. That would pull in Preflight,
+   whose global element reset would silently restyle every existing screen
+   in src/index.css (PropertyList, ComparisonReport, AuthForm, …).
+   Importing the theme and utilities layers alone gives us the tokens and
+   utility classes with no reset at all, so the landing and the app coexist.
+   ------------------------------------------------------------------- */
+@layer theme, app, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* Importing the layers individually (above) disables Tailwind's automatic
+   content detection, so the sources have to be named. Paths are relative to
+   this file.
+
+   Scanning ONLY this directory is deliberate. Aimed at all of src/, Tailwind
+   generates a utility for every class name the app happens to use, and any
+   name the two share then resolves in @layer utilities — which outranks the
+   app's own stylesheet and silently restyles the signed-in screens. The two
+   names that clashed have since been renamed in index.css, but keep this
+   narrow so the next one cannot happen. */
+@source "./";
+
+@theme {
+  /* canvas */
+  --color-ink: #07080a;
+  --color-surface: #0e1014;
+  --color-surface-2: #14171d;
+  --color-line: #ffffff14;
+
+  /* type */
+  --color-paper: #edeff2;
+  --color-muted: #99a2ad;
+  --color-faint: #5d6570;
+
+  /* brand */
+  --color-brand: #8b7cff;
+  --color-brand-2: #46e5d0;
+
+  /* evidence classification — the product's semantic core. These four
+     mean the same thing here, in the detection overlay, in the findings
+     list and in the shared report. */
+  --color-damage: #ff5c5c;      /* new damage               */
+  --color-preexisting: #5b9bff; /* already there at move-in */
+  --color-wear: #3fd68c;        /* normal wear and tear     */
+  --color-unclear: #ffc24b;     /* not enough evidence      */
+
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+}
+
+/* Scoped to .dg-site so it cannot leak into the app, and inside @layer base
+   so that Tailwind's utilities (which live in @layer utilities) still win.
+   Unlayered CSS beats every layer, so leaving these unlayered made
+   `.dg-site a { color: inherit }` override text-ink on every button. */
+@layer base {
+  /* Everything below is scoped to .dg-site so it cannot leak into the app. */
+  .dg-site {
+    background: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+
+  .dg-site *,
+  .dg-site *::before,
+  .dg-site *::after {
+    border-color: var(--color-line);
+    box-sizing: border-box;
+  }
+
+  .dg-site h1,
+  .dg-site h2,
+  .dg-site h3 {
+    text-wrap: balance;
+    margin: 0;
+    font-weight: 400;
+  }
+  .dg-site p { text-wrap: pretty; margin: 0; }
+  .dg-site ul, .dg-site ol { margin: 0; padding: 0; list-style: none; }
+  .dg-site button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  .dg-site a { color: inherit; text-decoration: none; }
+
+  .dg-site ::selection { background: var(--color-brand); color: #07080a; }
+}
+
+/* Lenis drives the scroll while the landing is mounted. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* ── Utilities ─────────────────────────────────────────────────── */
+.dg-site .text-display {
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 7.2vw, 6.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+/* Display type for a heading that shares its row with something else, so it
+   has roughly half the width the hero gets. */
+.dg-site .text-display-2 {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 4.8vw, 4.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.028em;
+}
+.dg-site .text-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.6vw, 3.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+.dg-site .text-gradient {
+  background: linear-gradient(100deg, var(--color-brand) 0%, var(--color-brand-2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.dg-site .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+.dg-site .bg-grid {
+  background-image:
+    linear-gradient(to right, #ffffff08 1px, transparent 1px),
+    linear-gradient(to bottom, #ffffff08 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+.dg-site .glass {
+  background: color-mix(in oklab, var(--color-surface) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Wrapped code keeps a hanging indent, so a continuation line sits under its
+   statement instead of snapping back to column 0 and reading as a new one. */
+.dg-site .cedar-line {
+  padding-left: 1.6em;
+  text-indent: -1.6em;
+}
+
+@keyframes dg-marquee { to { transform: translate3d(-50%, 0, 0); } }
+@keyframes dg-scan {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+@keyframes dg-pulse-ring {
+  0%   { transform: scale(0.85); opacity: 0.9; }
+  70%  { transform: scale(1.7);  opacity: 0; }
+  100% { transform: scale(1.7);  opacity: 0; }
+}
+
+/* ── The sign-in form, restyled for the dark landing ─────────────
+   AuthForm is shared with nothing else, but it is the app's real form
+   and keeps its own markup and logic. Only its skin changes in here. */
+.dg-site .auth {
+  /* index.css:617 caps .auth at 420px and pushes it right with margin-left:auto,
+     which the old landing wanted. Here the form owns a grid column of its own,
+     so it should fill it. */
+  max-width: none;
+  margin-left: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 1rem;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  color: var(--color-paper);
+}
+.dg-site .auth .tabs { display: flex; gap: 0.25rem; padding: 0.25rem; border: 1px solid var(--color-line); border-radius: 999px; }
+.dg-site .auth .tabs button {
+  flex: 1; padding: 0.5rem 0.75rem; border-radius: 999px;
+  font-size: 0.8rem; color: var(--color-muted); transition: background 0.25s, color 0.25s;
+  white-space: nowrap; /* "Create account" must not break across two lines */
+}
+.dg-site .auth .tabs button[aria-selected="true"] { background: var(--color-paper); color: var(--color-ink); }
+.dg-site .auth label { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.8rem; color: var(--color-muted); }
+.dg-site .auth input {
+  background: var(--color-ink); border: 1px solid var(--color-line); border-radius: 0.6rem;
+  padding: 0.7rem 0.85rem; color: var(--color-paper); font: inherit; font-size: 0.9rem;
+  transition: border-color 0.25s;
+}
+.dg-site .auth input:focus { outline: none; border-color: color-mix(in oklab, var(--color-brand) 60%, transparent); }
+.dg-site .auth .hint { font-size: 0.7rem; color: var(--color-faint); }
+.dg-site .auth .alert-error {
+  background: color-mix(in oklab, var(--color-damage) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-damage) 40%, transparent);
+  color: var(--color-damage); border-radius: 0.6rem; padding: 0.6rem 0.8rem; font-size: 0.8rem;
+}
+.dg-site .auth .btn-primary {
+  background: var(--color-paper); color: var(--color-ink);
+  border-radius: 999px; padding: 0.8rem 1rem; font-size: 0.875rem; font-weight: 500;
+  transition: transform 0.25s, opacity 0.25s;
+}
+.dg-site .auth .btn-primary:hover:not(:disabled) { transform: scale(1.02); }
+.dg-site .auth .btn-primary:disabled { opacity: 0.6; cursor: default; }
+
+/* Graceful fallback, not a blunt kill switch. */
+@media (prefers-reduced-motion: reduce) {
+  /* The horizontal track is laid out in CSS but moved by GSAP, and GSAP's
+     matchMedia deliberately does not register that tween here — so it has
+     to collapse back to an ordinary vertical stack or the later panels
+     would be unreachable. */
+  .dg-site .hiw-track {
+    width: 100% !important;
+    height: auto !important;
+    flex-direction: column !important;
+    gap: 4rem !important;
+    padding-bottom: 7rem !important;
+  }
+  .dg-site .hiw-panel {
+    width: 100% !important;
+    height: auto !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+  .dg-site *, .dg-site *::before, .dg-site *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,17 @@
+/* ── Cascade layer order for the whole app ──────────────────────────
+   index.css is imported into the `app` layer so Tailwind's utilities
+   (@layer utilities, which comes later) can win on the landing page
+   without editing any of its ~1,700 lines.
+
+   This is not theoretical tidiness. index.css defines `.grid` and
+   `.container`, which are also Tailwind utility class names, and
+   unlayered CSS beats every layer — so the app's
+   `.grid { grid-template-columns: repeat(auto-fill, minmax(260px,1fr)) }`
+   was silently overriding every grid on the landing page.
+
+   Nothing changes for the app's own screens: moving the whole file into
+   one layer preserves the order and specificity of its rules relative to
+   each other, and it is the only stylesheet that targets them.
+   ------------------------------------------------------------------- */
+@layer theme, app, base, components, utilities;
+@import "./index.css" layer(app);

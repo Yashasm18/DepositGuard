@@ -135,6 +135,13 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   } catch {
     throw new ApiError('Could not reach the DepositGuard server. Is it running?', 0);
   }
+  // A dead backend behind the dev proxy comes back as a 502/503/504, which
+  // means fetch RESOLVES rather than throwing — so the unreachable-server
+  // branch above never runs and the user gets "Something went wrong" while
+  // the real answer is that server/app.py is not running.
+  if (res.status === 502 || res.status === 503 || res.status === 504) {
+    throw new ApiError('Could not reach the DepositGuard server. Is it running?', res.status);
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const detail = data?.detail;

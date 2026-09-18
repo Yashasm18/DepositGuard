@@ -41,7 +41,7 @@ export function PropertyList({ onOpen }: { onOpen: (id: string) => void }) {
 
       {error && <div className="alert alert-error">{error}</div>}
 
-      <div className="grid">
+      <div className="dg-grid">
         {properties === null && !error && <div className="card muted">Loading…</div>}
         {properties?.map((p) => (
           <button key={p.id} className="card card-link" onClick={() => onOpen(p.id)}>
