@@ -331,6 +331,20 @@ export default function CompareDemo() {
                     </motion.div>
                   ) : (
                     <motion.ul key="list" className="flex flex-col gap-2.5">
+                      {owner && (
+                        <motion.li
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="rounded-xl border border-preexisting/30 bg-preexisting/[0.07] p-3.5"
+                        >
+                          <p className="text-[0.78rem] leading-relaxed text-muted">
+                            <span className="text-paper">This is the read-only link.</span>{" "}
+                            Your owner opens it without an account, reviews each finding and
+                            marks it agreed or disputed. They cannot change a photograph or
+                            the report.
+                          </p>
+                        </motion.li>
+                      )}
                       {FINDINGS.map((f, i) => {
                         const v = VERDICT[f.verdict];
                         const on = active === f.id;
@@ -341,11 +355,14 @@ export default function CompareDemo() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.1, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
                           >
-                            <button
-                              onClick={() => setActive(on ? null : f.id)}
-                              className={`w-full rounded-xl border p-3.5 text-left transition-colors ${
+                            <div
+                              className={`rounded-xl border transition-colors ${
                                 on ? "border-paper/25 bg-white/[0.04]" : "border-line hover:border-paper/15"
                               }`}
+                            >
+                            <button
+                              onClick={() => setActive(on ? null : f.id)}
+                              className="w-full p-3.5 text-left"
                             >
                               <div className="flex items-center gap-2">
                                 <span className="size-2 shrink-0 rounded-full" style={{ background: v.color }} />
@@ -377,40 +394,37 @@ export default function CompareDemo() {
                                       {f.chargeable}
                                     </p>
 
-                                    {owner && (
-                                      <div className="mt-3 flex gap-2">
-                                        {(["agree", "dispute"] as const).map((r) => (
-                                          <span
-                                            key={r}
-                                            role="button"
-                                            tabIndex={0}
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setResponses((s) => ({ ...s, [f.id]: r }));
-                                            }}
-                                            onKeyDown={(e) => {
-                                              if (e.key === "Enter" || e.key === " ") {
-                                                e.stopPropagation();
-                                                setResponses((s) => ({ ...s, [f.id]: r }));
-                                              }
-                                            }}
-                                            className={`cursor-pointer rounded-full border px-3 py-1 text-[0.72rem] capitalize transition-colors ${
-                                              responses[f.id] === r
-                                                ? r === "agree"
-                                                  ? "border-wear bg-wear/15 text-wear"
-                                                  : "border-damage bg-damage/15 text-damage"
-                                                : "border-line text-muted hover:text-paper"
-                                            }`}
-                                          >
-                                            {r}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    )}
                                   </motion.div>
                                 )}
                               </AnimatePresence>
                             </button>
+
+                            {owner && (
+                              <div className="flex items-center gap-2 border-t border-line px-3.5 py-2.5">
+                                <span className="font-mono text-[0.62rem] text-faint">
+                                  {responses[f.id] ? "your response" : "respond"}
+                                </span>
+                                <div className="ml-auto flex gap-2">
+                                  {(["agree", "dispute"] as const).map((r) => (
+                                    <button
+                                      key={r}
+                                      type="button"
+                                      onClick={() => setResponses((st) => ({ ...st, [f.id]: r }))}
+                                      className={`rounded-full border px-3 py-1 text-[0.72rem] capitalize transition-colors ${
+                                        responses[f.id] === r
+                                          ? r === "agree"
+                                            ? "border-wear bg-wear/15 text-wear"
+                                            : "border-damage bg-damage/15 text-damage"
+                                          : "border-line text-muted hover:text-paper"
+                                      }`}
+                                    >
+                                      {r}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            </div>
                           </motion.li>
                         );
                       })}
@@ -426,8 +440,14 @@ export default function CompareDemo() {
                     className="mt-4 rounded-xl border border-line bg-surface/60 p-3.5"
                   >
                     <div className="flex items-baseline justify-between">
-                      <span className="text-[0.75rem] text-muted">Defensible deduction</span>
-                      <span className="font-display text-2xl">₹4,500</span>
+                      <span className="text-[0.75rem] text-muted">
+                        {owner ? "Responded" : "Defensible deduction"}
+                      </span>
+                      <span className="font-display text-2xl">
+                        {owner
+                          ? `${Object.keys(responses).length}/${FINDINGS.length}`
+                          : "₹4,500"}
+                      </span>
                     </div>
                     <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-white/5">
                       <motion.span
@@ -444,8 +464,9 @@ export default function CompareDemo() {
                       />
                     </div>
                     <p className="mt-2.5 text-[0.72rem] leading-relaxed text-faint">
-                      Of the ₹25,000 originally proposed, one finding survives the
-                      photographs. The rest is either documented at move-in or fair wear.
+                      {owner
+                        ? "Every answer is recorded against the finding it belongs to, with the two photographs beside it, so neither side is arguing from memory."
+                        : "Of the ₹25,000 originally proposed, one finding survives the photographs. The rest is either documented at move-in or fair wear."}
                     </p>
                   </motion.div>
                 )}
