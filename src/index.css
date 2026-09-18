@@ -1,12 +1,19 @@
 :root {
-  --bg: #f6f7f5;
+  /* The brand gradient. Identical in both themes — it is the mark, not a
+     theme colour — and the same pair the landing page uses, so the two
+     halves of the product read as one thing. */
+  --brand-1: #8b7cff;
+  --brand-2: #46e5d0;
+  --brand-ink: #07080a;
+
+  --bg: #f7f7fa;
   --surface: #ffffff;
-  --text: #17201d;
-  --muted: #5d6b66;
-  --border: #dfe5e2;
-  --primary: #0f766e;
-  --primary-dark: #0b5d57;
-  --primary-soft: #e2f3f1;
+  --text: #14161c;
+  --muted: #5b616e;
+  --border: #e4e5ec;
+  --primary: #6252e8;
+  --primary-dark: #5040cc;
+  --primary-soft: #eeecfd;
   --good: #15803d;
   --good-soft: #e5f5ea;
   --bad: #b42318;
@@ -15,8 +22,8 @@
   --warn-soft: #fdf3dc;
   --info: #1d4ed8;
   --info-soft: #e7eefe;
-  --radius: 14px;
-  --shadow: 0 1px 2px rgb(16 24 20 / 6%), 0 4px 16px rgb(16 24 20 / 5%);
+  --radius: 16px;
+  --shadow: 0 1px 2px rgb(16 20 28 / 5%), 0 8px 24px rgb(16 20 28 / 6%);
 
   color-scheme: light;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -44,8 +51,24 @@ h5 {
   line-height: 1.2;
 }
 
+/* The display face is loaded in index.html and is the strongest single cue
+   tying the signed-in app to the landing page. Kept to the large headings —
+   at h3 and below the sans is more legible. */
+h1,
+h2,
+.section-title {
+  font-family: 'Instrument Serif', ui-serif, Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+h1 {
+  font-size: 2.4rem;
+}
+
 h2 {
-  font-size: 1.6rem;
+  font-size: 1.9rem;
 }
 
 p {
@@ -99,8 +122,12 @@ code {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1.25rem;
-  background: var(--surface);
+  padding: 0.85rem 1.25rem;
+  /* Translucent rather than solid, so content dissolves under it on scroll
+     the way it does beneath the landing page's floating nav. */
+  background: color-mix(in oklab, var(--surface) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -192,14 +219,15 @@ input:focus {
 
 .btn {
   display: inline-flex;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
   font: inherit;
   font-weight: 600;
   font-size: 0.92rem;
-  border-radius: 10px;
-  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  padding: 0.6rem 1.15rem;
   border: 1px solid transparent;
   cursor: pointer;
   white-space: nowrap;
@@ -212,12 +240,19 @@ input:focus {
 }
 
 .btn-primary {
-  background: var(--primary);
-  color: #fff;
+  background: linear-gradient(100deg, var(--brand-1) 0%, var(--brand-2) 100%);
+  color: var(--brand-ink);
+  font-weight: 600;
+  transition: transform 0.2s ease, filter 0.2s ease;
 }
 
 .btn-primary:not(:disabled):hover {
-  background: var(--primary-dark);
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+}
+
+.btn-primary:not(:disabled):active {
+  transform: translateY(0);
 }
 
 .btn-secondary {
@@ -1315,14 +1350,14 @@ input:focus {
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f1513;
-    --surface: #161e1c;
-    --text: #e8efec;
-    --muted: #9bb0aa;
-    --border: #26322f;
-    --primary: #2dd4bf;
-    --primary-dark: #14b8a6;
-    --primary-soft: #10312d;
+    --bg: #07080a;
+    --surface: #0e1014;
+    --text: #edeff2;
+    --muted: #99a2ad;
+    --border: #1e222a;
+    --primary: #8b7cff;
+    --primary-dark: #9d91ff;
+    --primary-soft: #17162b;
     --good: #4ade80;
     --good-soft: #10291a;
     --bad: #fca5a5;
@@ -1331,7 +1366,7 @@ input:focus {
     --warn-soft: #33260c;
     --info: #93c5fd;
     --info-soft: #14243f;
-    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 6px 20px rgb(0 0 0 / 25%);
+    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px rgb(0 0 0 / 35%);
 
     color-scheme: dark;
   }
@@ -1341,12 +1376,8 @@ input:focus {
     color: var(--text);
   }
 
-  .btn-primary {
-    color: #06211d;
-  }
-
   .step-num {
-    color: #06211d;
+    color: var(--brand-ink);
   }
 }
 
