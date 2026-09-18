@@ -266,7 +266,7 @@ export default function CompareDemo() {
               </button>
             </div>
 
-            <div className="grid gap-6 p-4 lg:grid-cols-[1.25fr_1fr] lg:p-6">
+            <div className="grid min-w-0 gap-6 p-4 lg:grid-cols-[1.25fr_1fr] lg:p-6">
               <div className="relative">
                 <Viewer
                   split={split}

@@ -21,7 +21,7 @@ export default function Share() {
           <RevealText gradient text="memory." delay={0.2} />
         </h2>
 
-        <div className="mt-16 grid gap-12 lg:grid-cols-[1fr_1.05fr] lg:items-center">
+        <div className="mt-16 grid min-w-0 gap-12 lg:grid-cols-[1fr_1.05fr] lg:items-center">
           <div className="flex flex-col gap-8">
             {POINTS.map((p, i) => (
               <Reveal key={p.k} delay={i * 0.1}>

@@ -2,34 +2,43 @@ import { motion } from "motion/react";
 import { Reveal, RevealText, useParallax } from "./motion-primitives";
 
 const CEDAR = [
-  { t: "// The owner's link can read the report. That is all it can do.", c: "comment" },
+  { t: "// The owner's link can read the report.", c: "comment" },
+  { t: "// That is the whole of what it can do.", c: "comment" },
   { t: "permit (", c: "kw" },
   { t: "  principal in Role::\"owner\",", c: "" },
-  { t: "  action   in [Action::\"viewReport\", Action::\"respondToFinding\"],", c: "" },
+  { t: "  action in [", c: "" },
+  { t: "    Action::\"viewReport\",", c: "" },
+  { t: "    Action::\"respondToFinding\"", c: "" },
+  { t: "  ],", c: "" },
   { t: "  resource == Tenancy::\"blr-koramangala-4b\"", c: "" },
   { t: ") when {", c: "kw" },
   { t: "  context.link.revoked == false &&", c: "" },
   { t: "  context.now < context.link.expiresAt", c: "" },
   { t: "};", c: "kw" },
   { t: "", c: "" },
-  { t: "// Evidence is the tenant's alone to add, re-seal or remove.", c: "comment" },
+  { t: "// Evidence is the tenant's alone to add,", c: "comment" },
+  { t: "// to re-seal, or to remove.", c: "comment" },
   { t: "forbid (", c: "kw" },
   { t: "  principal in Role::\"owner\",", c: "" },
-  { t: "  action   in [Action::\"addPhoto\", Action::\"deletePhoto\", Action::\"reseal\"],", c: "" },
+  { t: "  action in [", c: "" },
+  { t: "    Action::\"addPhoto\",", c: "" },
+  { t: "    Action::\"deletePhoto\",", c: "" },
+  { t: "    Action::\"reseal\"", c: "" },
+  { t: "  ],", c: "" },
   { t: "  resource", c: "" },
   { t: ");", c: "kw" },
 ];
 
 function CodeBlock() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-[#0a0c10]">
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-line bg-[#0a0c10]">
       <div className="flex items-center gap-2 border-b border-line px-4 py-2.5">
         <span className="size-2.5 rounded-full bg-damage/60" />
         <span className="size-2.5 rounded-full bg-unclear/60" />
         <span className="size-2.5 rounded-full bg-wear/60" />
         <span className="ml-2 font-mono text-[0.68rem] text-faint">policies/sharing.cedar</span>
       </div>
-      <pre className="overflow-x-auto p-5 font-mono text-[0.72rem] leading-[1.75]">
+      <pre className="max-w-full overflow-x-auto p-5 font-mono text-[0.72rem] leading-[1.75] whitespace-pre-wrap break-words">
         {CEDAR.map((l, i) => (
           <motion.div
             key={i}
@@ -37,9 +46,9 @@ function CodeBlock() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-10% 0px" }}
             transition={{ delay: i * 0.035, duration: 0.4 }}
-            className={
+            className={`cedar-line ${
               l.c === "comment" ? "text-faint" : l.c === "kw" ? "text-brand" : "text-muted"
-            }
+            }`}
           >
             {l.t || " "}
           </motion.div>
@@ -100,7 +109,10 @@ export default function Trust() {
           <RevealText text="Two open-source pieces from AWS do the load-bearing work." />
         </h2>
 
-        <div className="mt-16 grid gap-10 lg:grid-cols-2 lg:items-start">
+        {/* min-w-0: grid items default to min-width:auto and refuse to shrink
+            below their content, so without it the Cedar block’s longest line
+            widens the whole column past the viewport instead of scrolling. */}
+        <div className="mt-16 grid min-w-0 gap-10 lg:grid-cols-2 lg:items-start">
           <div className="flex flex-col gap-6">
             <Reveal>
               <article className="rounded-2xl border border-line bg-surface/50 p-7">
@@ -140,7 +152,7 @@ export default function Trust() {
             </Reveal>
           </div>
 
-          <Reveal delay={0.06}>
+          <Reveal delay={0.06} className="min-w-0">
             <CodeBlock />
           </Reveal>
         </div>

@@ -123,6 +123,13 @@ html.lenis, html.lenis body { height: auto; }
   -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
+/* Wrapped code keeps a hanging indent, so a continuation line sits under its
+   statement instead of snapping back to column 0 and reading as a new one. */
+.dg-site .cedar-line {
+  padding-left: 1.6em;
+  text-indent: -1.6em;
+}
+
 @keyframes dg-marquee { to { transform: translate3d(-50%, 0, 0); } }
 @keyframes dg-scan {
   0%   { transform: translateY(-100%); opacity: 0; }
