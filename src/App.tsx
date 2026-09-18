@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, type User } from './lib/api';
-import { AuthForm } from './components/AuthForm';
+import { Landing } from './components/Landing';
 import { PropertyList } from './components/PropertyList';
 import { PropertyDetail } from './components/PropertyDetail';
 import { SharedView } from './components/SharedView';
@@ -29,16 +29,7 @@ export default function App() {
   if (shareToken) return <SharedView token={shareToken} />;
   if (user === undefined) return <div className="center muted">Loading…</div>;
 
-  if (!user) {
-    return (
-      <div className="landing">
-        <Hero />
-        <div className="landing-auth">
-          <AuthForm onSignedIn={setUser} />
-        </div>
-      </div>
-    );
-  }
+  if (!user) return <Landing onSignedIn={setUser} />;
 
   async function signOut() {
     await api.signOut().catch(() => {});
@@ -71,34 +62,5 @@ export default function App() {
         Runs on your machine · AI review with Strands Agents · access rules with Cedar
       </footer>
     </div>
-  );
-}
-
-function Hero() {
-  return (
-    <section className="hero">
-      <div className="brand brand-lg">
-        <img src="/favicon.svg" alt="" width={40} height={40} />
-        <span>DepositGuard</span>
-      </div>
-      <h1>Get your full deposit back, with proof.</h1>
-      <p>
-        Photograph every room when you move in, and again when you move out. DepositGuard fingerprints each photo so
-        it can't be quietly swapped, finds exactly what changed, and uses AI to separate <strong>new damage</strong>{' '}
-        from what was <strong>already there</strong>. Share the report with your owner so you can settle it together.
-      </p>
-      <ol className="steps">
-        <li>
-          <b>1</b> Move-in photos, timestamped and fingerprinted
-        </li>
-        <li>
-          <b>2</b> Move-out photos of the same spots
-        </li>
-        <li>
-          <b>3</b> A before/after report your owner can agree or dispute
-        </li>
-      </ol>
-      <p className="small muted">Private by design: your photos and data stay on this computer.</p>
-    </section>
   );
 }

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   photoUrl,
-  type Box,
   type Finding,
   type FindingStatus,
   type OwnerResponse,
@@ -11,6 +10,7 @@ import {
   type Verdict,
 } from '../lib/api';
 import { formatDateTime } from '../lib/format';
+import { BeforeAfter } from './BeforeAfter';
 
 const OVERALL: Record<Report['overall'], { text: string; tone: string }> = {
   NO_NEW_DAMAGE: { text: 'No new damage found', tone: 'good' },
@@ -142,10 +142,24 @@ function FindingRow({ finding, before, after, beforeLabel, afterLabel, response,
       {response?.comment && <p className="owner-comment">Owner: “{response.comment}”</p>}
       {open && (
         <>
-          <div className="compare-pair">
-            <Side title={beforeLabel ?? 'Move-in'} photo={before} box={finding.box} source={source} />
-            <Side title={afterLabel ?? 'Move-out'} photo={after} box={finding.box} source={source} />
-          </div>
+          {before && after ? (
+            <div className="finding-photos">
+              <BeforeAfter
+                before={<img src={photoUrl(source, before.id)} alt={beforeLabel ?? 'Move-in'} />}
+                after={<img src={photoUrl(source, after.id)} alt={afterLabel ?? 'Move-out'} />}
+                beforeLabel={beforeLabel ?? 'Move-in'}
+                afterLabel={afterLabel ?? 'Move-out'}
+                box={finding.box}
+                ratio={`${after.width} / ${after.height}`}
+              />
+              <p className="small muted">
+                {beforeLabel ?? 'Move-in'} {formatDateTime(before.capturedAt)} · {afterLabel ?? 'Move-out'}{' '}
+                {formatDateTime(after.capturedAt)}
+              </p>
+            </div>
+          ) : (
+            <div className="thumb-empty">Photos not available</div>
+          )}
           <p className="small muted">
             {finding.source === 'ai'
               ? finding.box
@@ -157,35 +171,6 @@ function FindingRow({ finding, before, after, beforeLabel, afterLabel, response,
         </>
       )}
     </div>
-  );
-}
-
-function Side({ title, photo, box, source }: { title: string; photo?: Photo; box: Box | null; source: PhotoSource }) {
-  return (
-    <figure>
-      {photo ? (
-        <div className="boxed">
-          <img src={photoUrl(source, photo.id)} alt={title} />
-          {box && (
-            <span
-              className="box"
-              style={{
-                left: `${box.x * 100}%`,
-                top: `${box.y * 100}%`,
-                width: `${box.w * 100}%`,
-                height: `${box.h * 100}%`,
-              }}
-            />
-          )}
-        </div>
-      ) : (
-        <div className="thumb-empty">Photo not available</div>
-      )}
-      <figcaption>
-        {title}
-        {photo && ` · ${formatDateTime(photo.capturedAt)}`}
-      </figcaption>
-    </figure>
   );
 }
 
