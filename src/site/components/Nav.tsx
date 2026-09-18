@@ -9,7 +9,7 @@ const LINKS = [
   { href: "#aws", label: "Built on" },
 ];
 
-export default function Nav() {
+export default function Nav({ signedIn = false }: { signedIn?: boolean }) {
   const { scrollY } = useScroll();
   const [lifted, setLifted] = useState(false);
   useMotionValueEvent(scrollY, "change", (v) => setLifted(v > 40));
@@ -51,10 +51,10 @@ export default function Nav() {
         </ul>
 
         <a
-          href="#start"
+          href={signedIn ? "#/homes" : "#start"}
           className="ml-auto rounded-full bg-paper px-4 py-2 text-[0.8rem] font-medium text-ink transition-transform duration-300 hover:scale-[1.04] md:ml-2"
         >
-          Start a record
+          {signedIn ? "Go to my homes" : "Start a record"}
         </a>
       </nav>
     </motion.header>

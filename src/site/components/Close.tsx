@@ -3,9 +3,17 @@ import { Magnetic, Reveal, RevealText } from './motion-primitives';
 
 /**
  * Closing call to action. The `auth` slot takes the app's real AuthForm, so
- * the landing ends at an actual account rather than at a link to one.
+ * the landing ends at an actual account rather than at a link to one — unless
+ * the visitor already has one, in which case asking them to sign up again
+ * would be the wrong thing to put in front of them.
  */
-export default function Close({ auth }: { auth: ReactNode }) {
+export default function Close({
+  user,
+  auth,
+}: {
+  user: { email: string; name?: string } | null;
+  auth: ReactNode;
+}) {
   return (
     <>
       <section id="start" className="relative scroll-mt-24 overflow-hidden px-6 py-32 md:py-44">
@@ -30,11 +38,18 @@ export default function Close({ auth }: { auth: ReactNode }) {
             </Reveal>
             <Reveal delay={0.18}>
               <ul className="mt-8 flex flex-col gap-3">
-                {[
-                  'The account is created on this machine. Nothing is registered with us.',
-                  'Add the home you rent, then photograph a single wall to start.',
-                  'You can share a report with your owner whenever you are ready.',
-                ].map((t) => (
+                {(user
+                  ? [
+                      'Your account and every photograph stay on this machine.',
+                      'Pick up where you left off, or add another home you rent.',
+                      'Share a report with your owner whenever you are ready.',
+                    ]
+                  : [
+                      'The account is created on this machine. Nothing is registered with us.',
+                      'Add the home you rent, then photograph a single wall to start.',
+                      'You can share a report with your owner whenever you are ready.',
+                    ]
+                ).map((t) => (
                   <li key={t} className="flex items-start gap-3 text-[0.92rem] text-muted">
                     <svg viewBox="0 0 24 24" className="mt-0.5 size-4 shrink-0 text-brand-2" fill="none" stroke="currentColor" strokeWidth="2.4">
                       <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
@@ -58,7 +73,31 @@ export default function Close({ auth }: { auth: ReactNode }) {
             </Reveal>
           </div>
 
-          <Reveal delay={0.1}>{auth}</Reveal>
+          <Reveal delay={0.1}>
+            {user ? (
+              <div className="rounded-2xl border border-line bg-surface p-7">
+                <div className="eyebrow mb-4">Already signed in</div>
+                <p className="text-[0.95rem] leading-relaxed text-muted">
+                  You are signed in as{' '}
+                  <span className="text-paper">{user.email}</span>. Your evidence
+                  is where you left it.
+                </p>
+                <Magnetic>
+                  <a
+                    href="#/homes"
+                    className="mt-6 inline-flex items-center gap-2 rounded-full bg-paper px-6 py-3.5 text-sm font-medium text-ink"
+                  >
+                    Go to my homes
+                    <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </a>
+                </Magnetic>
+              </div>
+            ) : (
+              auth
+            )}
+          </Reveal>
         </div>
       </section>
 

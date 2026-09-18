@@ -5,8 +5,8 @@ import { PropertyDetail } from './components/PropertyDetail';
 import { SharedView } from './components/SharedView';
 
 // The landing pulls in the animation libraries (motion, gsap, lenis) and the
-// hero's WebGL. None of that is needed once you are signed in, so it is split
-// out and only fetched for signed-out visitors.
+// hero's WebGL. The app itself needs none of it, so it is split out and only
+// fetched when the landing is actually shown.
 const Landing = lazy(() =>
   import('./components/Landing').then((m) => ({ default: m.Landing })),
 );
@@ -21,9 +21,21 @@ function useHash(): string {
   return hash;
 }
 
+/**
+ * Routes:
+ *   #                 the landing page — the front door, for everyone
+ *   #/homes           your homes (requires an account)
+ *   #/homes/:id       one home (requires an account)
+ *   #/share/:token    a read-only report, opened by an owner with no account
+ *
+ * The landing is a route rather than a signed-out fallback on purpose. Keyed
+ * off auth state, anyone with a live session would never see it again — they
+ * would open the app and land straight in the upload screens.
+ */
 export default function App() {
   const hash = useHash();
   const shareToken = hash.match(/^#\/share\/([\w-]+)$/)?.[1];
+  const inApp = /^#\/homes(\/|$)/.test(hash);
   const propertyId = hash.match(/^#\/homes\/(\w+)$/)?.[1];
   const [user, setUser] = useState<User | null | undefined>(undefined);
 
@@ -32,16 +44,30 @@ export default function App() {
     api.me().then(setUser, () => setUser(null));
   }, [shareToken]);
 
+  // An app route reached without an account goes back to the front door.
+  useEffect(() => {
+    if (inApp && user === null) window.location.hash = '';
+  }, [inApp, user]);
+
   if (shareToken) return <SharedView token={shareToken} />;
   if (user === undefined) return <div className="center muted">Loading…</div>;
 
-  if (!user) {
+  if (!inApp) {
     return (
       <Suspense fallback={<div className="center muted">Loading…</div>}>
-        <Landing onSignedIn={setUser} />
+        <Landing
+          user={user}
+          onSignedIn={(signedIn) => {
+            setUser(signedIn);
+            window.location.hash = '#/homes';
+          }}
+        />
       </Suspense>
     );
   }
+
+  // The redirect above is in flight.
+  if (!user) return <div className="center muted">Loading…</div>;
 
   async function signOut() {
     await api.signOut().catch(() => {});
@@ -52,7 +78,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <a className="brand" href="#">
+        <a className="brand" href="#/homes">
           <img src="/favicon.svg" alt="" width={28} height={28} />
           <span>DepositGuard</span>
         </a>

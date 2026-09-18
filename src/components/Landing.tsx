@@ -18,17 +18,25 @@ import Close from '../site/components/Close';
 /**
  * The signed-out landing page.
  *
- * Same contract as before — App renders this whenever there is no user, and it
- * calls onSignedIn once the account exists. Everything under src/site is the
+ * This is the front door at `#`, shown to everyone — signed in or not — rather
+ * than a fallback for signed-out visitors. Everything under src/site is the
  * marketing surface; the sign-in itself is still the app's own AuthForm, so
  * there is exactly one place where authentication happens.
  */
-export function Landing({ onSignedIn }: { onSignedIn: (user: User) => void }) {
+export function Landing({
+  user,
+  onSignedIn,
+}: {
+  /** null when signed out. Signed-in visitors still see the landing — it is
+   *  the front door — but are offered their homes rather than a sign-up form. */
+  user: User | null;
+  onSignedIn: (user: User) => void;
+}) {
   return (
     <div className="dg-site">
       <SmoothScroll />
       <Grain />
-      <Nav />
+      <Nav signedIn={!!user} />
       <main>
         <Hero />
         <Marquee />
@@ -38,7 +46,7 @@ export function Landing({ onSignedIn }: { onSignedIn: (user: User) => void }) {
         <Engine />
         <Trust />
         <Share />
-        <Close auth={<AuthForm onSignedIn={onSignedIn} />} />
+        <Close user={user} auth={<AuthForm onSignedIn={onSignedIn} />} />
       </main>
     </div>
   );
