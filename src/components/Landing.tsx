@@ -2,6 +2,7 @@ import type { User } from '../lib/api';
 import { AuthForm } from './AuthForm';
 import { BeforeAfter } from './BeforeAfter';
 import { RoomIllustration } from './RoomIllustration';
+import { ScrollStory } from './ScrollStory';
 
 const STEPS = [
   {
@@ -90,6 +91,8 @@ export function Landing({ onSignedIn }: { onSignedIn: (user: User) => void }) {
           </div>
         </div>
       </section>
+
+      <ScrollStory />
 
       <section className="section" id="how">
         <h2 className="section-title reveal">Three steps, and you are covered</h2>

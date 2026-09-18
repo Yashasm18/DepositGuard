@@ -1359,3 +1359,357 @@ input:focus {
 .finding-photos .ba {
   box-shadow: none;
 }
+
+/* ==========================================================================
+   Scroll-told story
+   Base styles are the readable, static version. The pinned, animated
+   version is layered on only where scroll-driven animations are supported
+   and the visitor hasn't asked for reduced motion.
+   ========================================================================== */
+
+.story {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem);
+}
+
+.story-stage {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.story-scene {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  background: var(--surface);
+}
+
+.story-svg {
+  width: 100%;
+  display: block;
+}
+
+.story-box {
+  position: absolute;
+  left: 41%;
+  top: 52%;
+  width: 22%;
+  height: 24%;
+  border: 3px solid #f59e0b;
+  border-radius: 8px;
+  box-shadow: 0 0 16px rgb(245 158 11 / 55%);
+}
+
+.story-finding {
+  position: absolute;
+  right: 3%;
+  bottom: 4%;
+  max-width: min(260px, 46%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--bad);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  box-shadow: var(--shadow);
+}
+
+.story-finding b {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.stamp {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bad);
+  border: 2px solid var(--bad);
+  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+  transform: rotate(-6deg);
+}
+
+.story-chapters {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.story-chapter {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+}
+
+.kicker {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.story-chapter h3 {
+  margin: 0.3rem 0 0.35rem;
+  font-size: clamp(1.15rem, 2.2vw, 1.6rem);
+  letter-spacing: -0.01em;
+}
+
+.story-progress {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .story {
+      /* Scroll distance the story plays over. */
+      height: 420vh;
+      view-timeline: --story block;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .story-stage {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      grid-template-columns: 1.15fr 1fr;
+      align-items: center;
+      gap: clamp(1.5rem, 4vw, 3rem);
+      padding: 5vh 0;
+    }
+
+    .story-scene {
+      animation: story-zoom linear both;
+      animation-timeline: --story;
+      animation-range: contain 0% contain 100%;
+    }
+
+    .story-svg .layer-front {
+      animation: story-parallax linear both;
+      animation-timeline: --story;
+      animation-range: contain 0% contain 100%;
+    }
+
+    .story-damage,
+    .story-box,
+    .story-finding,
+    .stamp {
+      opacity: 0;
+    }
+
+    .story-damage {
+      animation: fade-in linear both;
+      animation-timeline: --story;
+      animation-range: contain 22% contain 42%;
+    }
+
+    .story-box {
+      animation: box-snap linear both;
+      animation-timeline: --story;
+      animation-range: contain 46% contain 60%;
+    }
+
+    .story-finding {
+      animation: slide-up linear both;
+      animation-timeline: --story;
+      animation-range: contain 62% contain 74%;
+    }
+
+    .stamp {
+      animation: stamp-in linear both;
+      animation-timeline: --story;
+      animation-range: contain 82% contain 92%;
+    }
+
+    /* Chapters cross-fade in place. */
+    .story-chapters {
+      position: relative;
+      min-height: 15rem;
+    }
+
+    .story-chapter {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      animation: chapter linear both;
+      animation-timeline: --story;
+    }
+
+    .story-chapter.c1 {
+      animation-range: contain 0% contain 25%;
+    }
+
+    .story-chapter.c2 {
+      animation-range: contain 25% contain 50%;
+    }
+
+    .story-chapter.c3 {
+      animation-range: contain 50% contain 75%;
+    }
+
+    .story-chapter.c4 {
+      animation-range: contain 75% contain 100%;
+    }
+
+    .story-progress {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 18vh;
+      bottom: 18vh;
+      width: 3px;
+      border-radius: 3px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .story-progress span {
+      display: block;
+      height: 100%;
+      background: var(--primary);
+      transform-origin: top;
+      animation: progress linear both;
+      animation-timeline: --story;
+      animation-range: contain 0% contain 100%;
+    }
+
+    .story-stage {
+      padding-left: 1.75rem;
+      position: sticky;
+    }
+  }
+}
+
+@keyframes story-zoom {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.07);
+  }
+}
+
+@keyframes story-parallax {
+  from {
+    transform: translateY(14px);
+  }
+
+  to {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes box-snap {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(0.97);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: rotate(-6deg) scale(2.2);
+  }
+
+  60% {
+    opacity: 1;
+    transform: rotate(-6deg) scale(0.92);
+  }
+
+  100% {
+    opacity: 1;
+    transform: rotate(-6deg) scale(1);
+  }
+}
+
+@keyframes chapter {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  12%,
+  88% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes progress {
+  from {
+    transform: scaleY(0);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@media (max-width: 860px) {
+  @supports (animation-timeline: view()) {
+    .story-stage {
+      grid-template-columns: 1fr;
+      align-content: center;
+    }
+
+    .story-chapters {
+      min-height: 13rem;
+    }
+  }
+}
+
+/* On a phone the scene is too small for a card on top of it. */
+@media (max-width: 700px) {
+  .story-finding {
+    display: none;
+  }
+}
